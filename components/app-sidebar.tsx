@@ -49,6 +49,10 @@ const data = {
           url: "/event",
         },
         {
+          title: "COOL",
+          url: "/cool",
+        },
+        {
           title: "Services",
           url: "#",
         },

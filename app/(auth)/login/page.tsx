@@ -39,7 +39,6 @@ const LoginPage = () => {
 
   const onSubmit = useCallback(
     async (data: LoginSchema) => {
-      console.log(data);
       try {
         setIsLoading(true);
         const { data: session, error } =
@@ -75,7 +74,6 @@ const LoginPage = () => {
   );
 
   useEffect(() => {
-    console.log(user);
     if (isAuthenticated) {
       router.replace("/dashboard");
     }
