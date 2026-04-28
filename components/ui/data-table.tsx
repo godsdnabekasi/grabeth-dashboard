@@ -203,7 +203,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border bg-white">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -235,8 +235,8 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() ? "selected" : undefined}
                   className={cn(
-                    `${idx % 2 === 0 ? "bg-white" : "bg-gray-100"}`,
-                    onRowClick ? "hover:bg-muted/50 cursor-pointer" : ""
+                    `${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`,
+                    onRowClick ? "hover:bg-gray-100 cursor-pointer" : ""
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (

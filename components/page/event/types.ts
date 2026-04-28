@@ -72,6 +72,24 @@ const unpublishTimeSchema = z
     }
   });
 
+const categoriesSchema = z.object({
+  id: z.number().optional().nullable(),
+  title: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  price: z.number().optional().nullable(),
+  final_price: z.number().optional().nullable(),
+});
+
+const ticketSchema = z.object({
+  id: z.number().optional().nullable(),
+  title: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  terms: z.string().optional().nullable(),
+  publish_time: z.date(REQUIRED_MSG).nullable().optional(),
+  unpublish_time: z.date(REQUIRED_MSG).nullable().optional(),
+  categories: z.array(categoriesSchema).optional(),
+});
+
 export const eventSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
@@ -85,6 +103,9 @@ export const eventSchema = z.object({
   unpublish_time: unpublishTimeSchema,
   cover_image: z.any().optional(),
   location: locationSchema.optional(),
+  tickets: z.array(ticketSchema).optional(),
 });
 
+export type CategoryFormValues = z.infer<typeof categoriesSchema>;
+export type TicketFormValues = z.infer<typeof ticketSchema>;
 export type EventFormValues = z.infer<typeof eventSchema>;

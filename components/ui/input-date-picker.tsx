@@ -122,6 +122,8 @@ const DatePickerContent = memo(
               mode="single"
               selected={value}
               captionLayout="dropdown"
+              weekStartsOn={1}
+              defaultMonth={value}
               onSelect={handleSelect}
             />
           </PopoverContent>

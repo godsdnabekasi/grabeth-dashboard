@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 // import SelectChurch from "./select-church";
 import { EventFormValues, eventSchema } from "./types";
+import EventFormTicket from "@/components/page/event/form-ticket";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { InputImage } from "@/components/ui/input-image";
 import { InputLocation } from "@/components/ui/input-location";
 import { InputTime } from "@/components/ui/input-time";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
@@ -33,7 +35,7 @@ const EventForm = ({
 }: Props) => {
   const router = useRouter();
 
-  const { control, handleSubmit } = useForm<EventFormValues>({
+  const { control, setValue, handleSubmit } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: initialValues,
   });
@@ -44,14 +46,17 @@ const EventForm = ({
   });
 
   const onPress = useMemo(
-    () => handleSubmit((values) => onSubmit({ ...values })),
+    () =>
+      handleSubmit((values) => {
+        onSubmit({ ...values });
+      }),
     [handleSubmit, onSubmit]
   );
 
   return (
-    <Card>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+    <section className="space-y-6">
+      <Card>
+        <CardContent className="grid grid-cols-2 gap-6">
           <InputImage
             label="Cover Image"
             name="cover_image"
@@ -74,6 +79,7 @@ const EventForm = ({
             name="capacity"
             control={control}
             disabled={isSubmitting}
+            type="number"
           />
           <InputDatePicker
             label="Date"
@@ -146,8 +152,16 @@ const EventForm = ({
             disabled={isSubmitting}
             containerClassName="col-span-2"
           />
-        </div>
-      </CardContent>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      <EventFormTicket
+        control={control}
+        setValue={setValue}
+        isSubmitting={isSubmitting}
+      />
 
       <CardFooter className="justify-between">
         <Button variant="outline" onClick={() => router.back()}>
@@ -157,7 +171,7 @@ const EventForm = ({
           {submitLabel}
         </Button>
       </CardFooter>
-    </Card>
+    </section>
   );
 };
 

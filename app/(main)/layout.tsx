@@ -18,11 +18,10 @@ import UserProvider from "@/components/user-provider";
 import { createClient } from "@/lib/supabase/server";
 
 const MainLayout = async ({ children }: { children: React.ReactNode }) => {
-  const supabase = createClient();
-
+  const supabase = await createClient();
   const {
     data: { user },
-  } = await (await supabase).auth.getUser();
+  } = await supabase.auth.getUser();
 
   return (
     <UserProvider initialUser={user}>

@@ -30,5 +30,3 @@ export async function createClient() {
     }
   );
 }
-
-export const supabaseServer = createClient();

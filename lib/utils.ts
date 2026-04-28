@@ -21,3 +21,11 @@ export function formatDateTime(
 ) {
   return `${formatDate(date, dateFormat)} ${formatTime(date, timeFormat)}`;
 }
+export function formatCurrency(value: number | string) {
+  if (!value && value !== 0) return "";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(Number(value));
+}

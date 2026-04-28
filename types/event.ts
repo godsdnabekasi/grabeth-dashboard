@@ -16,6 +16,7 @@ export interface IEvent {
   website?: string;
   created_at?: string;
   event_file?: IEventFile;
+  event_bookings?: IEventBooking[];
   event_location?: {
     event_id: number;
     event: IEvent;
@@ -41,3 +42,47 @@ export interface IEventLocation {
   location_id: number;
   location?: ILocation;
 }
+
+export interface IEventBooking {
+  id: number;
+  event?: IEvent;
+  event_id: number;
+  title: string;
+  description?: string;
+  terms?: string;
+  publish_time: string;
+  unpublish_time: string;
+  created_at?: string;
+  max?: number;
+  event_booking_categories?: IEventBookingCategory[];
+}
+
+export interface IPayloadEventBooking extends Omit<IEventBooking, "id"> {
+  id?: number | undefined;
+}
+
+export interface IEventCategory {
+  id: number;
+  event_id: number;
+  title: string;
+  description?: string;
+  is_default?: boolean;
+  created_at?: string;
+  event_booking_category?: IEventBookingCategory;
+}
+
+export interface IPayloadEventCategory extends Omit<IEventCategory, "id"> {
+  id?: number | undefined;
+}
+
+export interface IEventBookingCategory {
+  event_booking_id: number;
+  event_bookings?: IEventBooking;
+  event_category_id: number;
+  event_categories?: IEventCategory;
+  price?: number | null;
+  final_price?: number | null;
+  created_at?: string;
+}
+
+export type IPayloadEventBookingCategory = IEventBookingCategory;

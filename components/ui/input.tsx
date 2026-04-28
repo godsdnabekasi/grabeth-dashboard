@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface InputContainerProps extends Omit<
   React.ComponentProps<"input">,
@@ -57,13 +57,27 @@ function InputContainer({
       >
         {prefix}
         <input
-          type={password ? (!showPassword ? "password" : "text") : props.type}
+          type={
+            password
+              ? !showPassword
+                ? "password"
+                : "text"
+              : props.type === "currency"
+                ? "text"
+                : props.type
+          }
+          inputMode={
+            props.type === "number" || props.type === "currency"
+              ? "numeric"
+              : props.inputMode
+          }
           data-slot="input"
           className={cn(
             "flex h-full w-full min-w-0 flex-1",
             "focus-visible:outline-none",
             className
           )}
+          onWheel={(e) => props.type === "number" && e.currentTarget.blur()}
           {...props}
         />
         {password ? (
@@ -123,15 +137,16 @@ function Input<T extends FieldValues>({
           name={name}
           id={name as string}
           onChange={(e) => {
-            if (props.type === "number") {
-              const value = e.target.value;
-              onChange(value === "" ? "" : Number(value));
+            if (props.type === "number" || props.type === "currency") {
+              const val = e.target.value;
+              const numericValue = val.replace(/[^0-9]/g, "");
+              onChange(numericValue === "" ? null : Number(numericValue));
             } else {
               onChange(e);
             }
           }}
           onBlur={onBlur}
-          value={value}
+          value={props.type === "currency" ? formatCurrency(value) : value}
           containerClassName={containerClassName}
           {...props}
         />
