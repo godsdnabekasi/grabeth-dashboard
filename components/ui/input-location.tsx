@@ -182,7 +182,7 @@ function InputLocationContainer({
                   type="text"
                   placeholder={placeholder}
                   className={cn(
-                    "h-9 flex-row items-center bg-white w-full px-10",
+                    "h-10 flex-row items-center bg-white w-full px-10",
                     "gap-3 rounded-md border border-input shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground md:text-sm dark:bg-input/30",
                     error && "border-red-500 ring-red-500/10",
                     disabled &&

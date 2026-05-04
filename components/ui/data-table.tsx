@@ -34,7 +34,6 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
-  onRowClick?: (row: TData) => void;
   searchKey?: string;
   searchPlaceholder?: string;
   page?: number;
@@ -42,6 +41,8 @@ interface DataTableProps<TData, TValue> {
   totalCount?: number;
   showPagination?: boolean;
   emptyMessage?: string;
+  enableRowSelection?: boolean;
+  onRowClick?: (row: TData) => void;
   onDeleteRow?: (val: TData[]) => void | Promise<void>;
   onSearch?: (val?: string) => void;
   onPaginationChange?: (pagination: IPaginationProps) => void;
@@ -56,7 +57,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   loading = false,
-  onRowClick,
   searchKey,
   searchPlaceholder = "Search...",
   page = 0,
@@ -64,6 +64,8 @@ export function DataTable<TData, TValue>({
   totalCount = 0,
   showPagination = true,
   emptyMessage = "No results.",
+  enableRowSelection = true,
+  onRowClick,
   onDeleteRow,
   onSearch,
   onPaginationChange,
@@ -87,7 +89,7 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onPaginationChange: setPagination,
-    enableRowSelection: true,
+    enableRowSelection: enableRowSelection,
     onRowSelectionChange: setRowSelection,
     state: {
       sorting,
@@ -105,7 +107,9 @@ export function DataTable<TData, TValue>({
   const canPrevious = page >= 1;
   const canNext = (page + 1) * pagination.pageSize < totalCount;
   const [searchTerm, setSearchTerm] = useState(
-    (table.getColumn(searchKey!)?.getFilterValue() as string) ?? undefined
+    searchKey
+      ? (table.getColumn(searchKey)?.getFilterValue() as string)
+      : undefined
   );
 
   const onDelete = () => {
@@ -157,50 +161,52 @@ export function DataTable<TData, TValue>({
   }, [searchTerm, searchKey, table, onSearch]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Search Input */}
-      <div className="flex gap-4">
-        {searchKey && (
-          <div className="flex items-center">
-            <InputSearch
-              placeholder={searchPlaceholder}
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value);
-              }}
-              className="max-w-sm"
+      {(searchKey || Object.entries(rowSelection).length > 0) && (
+        <div className="flex">
+          {searchKey && (
+            <div className="flex items-center mr-4">
+              <InputSearch
+                placeholder={searchPlaceholder}
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                }}
+                className="max-w-sm"
+              />
+            </div>
+          )}
+          {Object.entries(rowSelection).length > 0 && (
+            <Alert
+              title="Are you sure?"
+              description="This action cannot be undone."
+              trigger={
+                <Button variant="destructive">
+                  Delete {Object.entries(rowSelection).length} selected
+                </Button>
+              }
+              footer={
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => table.toggleAllPageRowsSelected(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    loading={loading}
+                    onClick={onDelete}
+                  >
+                    Delete
+                  </Button>
+                </>
+              }
             />
-          </div>
-        )}
-        {Object.entries(rowSelection).length > 0 && (
-          <Alert
-            title="Are you sure?"
-            description="This action cannot be undone."
-            trigger={
-              <Button variant="destructive">
-                Delete {Object.entries(rowSelection).length} selected
-              </Button>
-            }
-            footer={
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => table.toggleAllPageRowsSelected(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  loading={loading}
-                  onClick={onDelete}
-                >
-                  Delete
-                </Button>
-              </>
-            }
-          />
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Table */}
       <div className="overflow-hidden rounded-md border bg-white">
@@ -241,10 +247,12 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="relative">
-                      <a
-                        onClick={() => onRowClick?.(row.original)}
-                        className="flex absolute top-0 right-0 bottom-0 left-0 flex-1"
-                      />
+                      {enableRowSelection && (
+                        <a
+                          onClick={() => onRowClick?.(row.original)}
+                          className="flex absolute top-0 right-0 bottom-0 left-0 flex-1"
+                        />
+                      )}
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

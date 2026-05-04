@@ -17,8 +17,10 @@ import {
   upsertSmallGroup,
   upsertSmallGroupFile,
   upsertSmallGroupLocation,
+  upsertSmallGroupUser,
 } from "@/service/small-group";
 import userStore from "@/store/user";
+import { CoolUserRole } from "@/types/small-group";
 
 async function handleImageUpload(
   coverImage: File,
@@ -62,7 +64,7 @@ const CoolCreatePage = () => {
     async (formData: CoolFormValues) => {
       try {
         setIsLoading(true);
-        const { day, time, coverImage, location, ...rest } = formData;
+        const { day, time, members, coverImage, location, ...rest } = formData;
         const dayNumber = moment().day(day).valueOf();
         const meetingDate = moment(dayNumber).format("YYYY-MM-DD");
         const meetTimeFormatted = `${meetingDate} ${time}`;
@@ -83,6 +85,18 @@ const CoolCreatePage = () => {
             Number(churchId),
             rest.name
           );
+        }
+
+        if (members && members?.length > 0) {
+          const { error: smallGroupUserError } = await upsertSmallGroupUser(
+            members.map((member) => ({
+              small_group_id: smallGroupData!.id,
+              user_id: member.id!,
+              role: (member.newRole || member.role) as CoolUserRole,
+            }))
+          );
+          if (smallGroupUserError)
+            throw "Failed to update COOL, please try again later";
         }
 
         if (location?.name) {
@@ -123,6 +137,7 @@ const CoolCreatePage = () => {
         <LoadingSection />
       ) : (
         <CoolForm
+          mode="create"
           isSubmitting={isLoading}
           submitLabel="Create"
           onSubmit={onSubmit}

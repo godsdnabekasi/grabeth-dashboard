@@ -21,6 +21,15 @@ export function formatDateTime(
 ) {
   return `${formatDate(date, dateFormat)} ${formatTime(date, timeFormat)}`;
 }
+
+export function formatDateTimeISO(date: string) {
+  return moment(date).toISOString();
+}
+
+export function changeTimeZone(date: Date | string, offset: number = 7) {
+  return moment(date).utcOffset(offset).toISOString(true);
+}
+
 export function formatCurrency(value: number | string) {
   if (!value && value !== 0) return "";
   return new Intl.NumberFormat("id-ID", {

@@ -8,7 +8,7 @@ import { Control, Controller, FieldValues, Path } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { cn, formatCurrency } from "@/lib/utils";
 
-interface InputContainerProps extends Omit<
+export interface InputContainerProps extends Omit<
   React.ComponentProps<"input">,
   "prefix"
 > {
@@ -48,7 +48,7 @@ function InputContainer({
       )}
       <div
         className={cn(
-          "flex h-9 flex-row items-center bg-white",
+          "flex h-10 flex-row items-center bg-white",
           "gap-3 rounded-md border border-input px-3 shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground md:text-sm dark:bg-input/30",
           errorBorder,
           disabledClass,

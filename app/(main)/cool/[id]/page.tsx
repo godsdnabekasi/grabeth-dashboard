@@ -3,22 +3,25 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import moment from "moment";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import CoolForm from "@/components/page/cool/form";
 import { CoolFormValues } from "@/components/page/cool/types";
 import LoadingSection from "@/components/ui/loading-section";
 import PageHeader from "@/components/ui/page-header";
-import { formatTime } from "@/lib/utils";
+import { changeTimeZone, formatTime } from "@/lib/utils";
 import { uploadFile, uploadFileToStorage } from "@/service/file";
 import { upsertLocation } from "@/service/location";
 import {
+  deleteSmallGroupUser,
   getSmallGroup,
   upsertSmallGroup,
   upsertSmallGroupFile,
   upsertSmallGroupLocation,
+  upsertSmallGroupUser,
 } from "@/service/small-group";
+import { CoolUserRole } from "@/types/small-group";
 
 async function handleImageUpload(
   coverImage: File,
@@ -55,6 +58,8 @@ async function handleImageUpload(
 const CoolDetailPage = () => {
   const { id } = useParams();
   const coolId = Number(id);
+  const router = useRouter();
+
   const [isLoading, setIsLoading] = useState({
     fetch: true,
     submit: false,
@@ -87,6 +92,13 @@ const CoolDetailPage = () => {
               ),
             }
           : undefined,
+        members: data?.small_group_user?.map((item) => ({
+          name: item.user?.name || "-",
+          id: item.user?.id,
+          joinedDate: moment(item.created_at).format("DD MMM YYYY"),
+          role: item.role || "-",
+          image: item.user?.user_file?.file?.link,
+        })),
       });
     } catch {
       toast.error("Failed to fetch cool");
@@ -99,10 +111,20 @@ const CoolDetailPage = () => {
     async (formData: CoolFormValues) => {
       try {
         setIsLoading((prev) => ({ ...prev, submit: true }));
-        const { day, time, coverImage, location, ...rest } = formData;
+        const { day, time, members, coverImage, location, ...rest } = formData;
         const dayNumber = moment().day(day).valueOf();
         const meetingDate = moment(dayNumber).format("YYYY-MM-DD");
         const meetTimeFormatted = `${meetingDate} ${time}`;
+
+        const newMembers = members?.filter((member) => member.selected) || [];
+        const changedMemberRole =
+          members?.filter((member) => !member.selected && member.newRole) || [];
+        const deletedMember = item?.members
+          ?.filter(
+            (oldMember) =>
+              !members?.some((newMember) => newMember.id === oldMember.id)
+          )
+          .map((oldMember) => oldMember.id);
 
         const { error: smallGroupError } = await upsertSmallGroup({
           ...rest,
@@ -118,6 +140,44 @@ const CoolDetailPage = () => {
             Number(rest.church_id),
             rest.name
           );
+        }
+
+        //* UPSERT NEW MEMBER
+        if (newMembers?.length > 0) {
+          const { error: smallGroupUserError } = await upsertSmallGroupUser(
+            newMembers.map((member) => ({
+              small_group_id: coolId,
+              user_id: member.id!,
+              role: (member.newRole || member.role) as CoolUserRole,
+            }))
+          );
+          if (smallGroupUserError)
+            throw "Failed to update COOL, please try again later";
+        }
+
+        //* UPDATE ROLE
+        if (changedMemberRole?.length > 0) {
+          const { error: smallGroupUserError } = await upsertSmallGroupUser(
+            changedMemberRole.map((member) => ({
+              small_group_id: coolId,
+              user_id: member.id!,
+              role: member.newRole as CoolUserRole,
+            }))
+          );
+          if (smallGroupUserError)
+            throw "Failed to update COOL, please try again later";
+        }
+
+        //* DELETE MEMBER
+        if (deletedMember && deletedMember?.length > 0) {
+          const { error: smallGroupUserError } = await deleteSmallGroupUser(
+            deletedMember.map((id) => ({
+              small_group_id: coolId,
+              user_id: id!,
+            }))
+          );
+          if (smallGroupUserError)
+            throw "Failed to update COOL, please try again later";
         }
 
         if (location?.name) {
@@ -151,8 +211,38 @@ const CoolDetailPage = () => {
         setIsLoading((prev) => ({ ...prev, submit: false }));
       }
     },
-    [coolId, fetchItem]
+    [coolId, fetchItem, item?.members]
   );
+
+  const onDelete = useCallback(async () => {
+    try {
+      setIsLoading((prev) => ({ ...prev, submit: true }));
+      const { error } = await upsertSmallGroup({
+        name: item!.name,
+        description: item?.description,
+        id: coolId,
+        deleted_at: changeTimeZone(new Date()),
+      });
+      if (error) throw "Failed to delete COOL, please try again later";
+
+      if (item?.members && item.members.length > 0) {
+        const { error: smallGroupUserError } = await deleteSmallGroupUser(
+          item.members.map((member) => ({
+            small_group_id: coolId,
+            user_id: member.id!,
+          }))
+        );
+        if (smallGroupUserError)
+          throw "Failed to delete COOL member, please try again later";
+      }
+      toast.success("Successfully deleted COOL");
+      router.replace("/cool");
+    } catch (error) {
+      toast.error(String(error));
+    } finally {
+      setIsLoading((prev) => ({ ...prev, submit: false }));
+    }
+  }, [coolId, item, router]);
 
   useEffect(() => {
     fetchItem();
@@ -165,10 +255,12 @@ const CoolDetailPage = () => {
         <LoadingSection />
       ) : (
         <CoolForm
+          mode="edit"
           initialValues={item}
           isSubmitting={isLoading.submit}
           submitLabel="Update"
           onSubmit={onSubmit}
+          onDelete={onDelete}
         />
       )}
     </>

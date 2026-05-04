@@ -44,7 +44,7 @@ function InputTimeContainer({
       )}
       <div
         className={cn(
-          "flex flex-row items-center h-9 bg-white",
+          "flex flex-row items-center h-10 bg-white",
           "px-3 gap-3 placeholder:text-muted-foreground dark:bg-input/30 border-input rounded-md border shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
           errorBorder,
           disabledClass,

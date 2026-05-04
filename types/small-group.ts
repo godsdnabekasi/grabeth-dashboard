@@ -64,6 +64,12 @@ export interface ISmallGroupUser {
   deleted_at?: string;
 }
 
+export interface IPayloadSmallGroupUser {
+  small_group_id: number;
+  user_id: string;
+  role: CoolUserRole;
+}
+
 export interface IListCool {
   id?: number;
   church_id?: number;

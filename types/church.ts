@@ -1,4 +1,7 @@
 import { IFile } from "@/types/file";
+import { IUser } from "@/types/user";
+
+export type TChurchUserRole = "admin" | "user" | "finance";
 
 export interface IChurch {
   id: number;
@@ -14,4 +17,12 @@ export interface IChurch {
   youtube_channel_url?: string;
   // church_location?: IChurchLocation[];
   // church_user?: IChurchUser[];
+}
+
+export interface IChurchUser {
+  church_id: number;
+  user_id: number;
+  user?: IUser;
+  role: TChurchUserRole;
+  created_at?: string;
 }

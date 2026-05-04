@@ -4,9 +4,11 @@ import {
   IPayloadSmallGroup,
   IPayloadSmallGroupFile,
   IPayloadSmallGroupLocation,
+  IPayloadSmallGroupUser,
   ISmallGroup,
   ISmallGroupFile,
   ISmallGroupLocation,
+  ISmallGroupUser,
 } from "@/types/small-group";
 
 export const getSmallGroups = async (
@@ -23,7 +25,8 @@ export const getSmallGroups = async (
     `,
       { count: "exact" }
     )
-    .eq("church_id", filter?.church_id);
+    .eq("church_id", filter?.church_id)
+    .is("deleted_at", null);
 
   if (filter) {
     const { search, id } = filter;
@@ -53,7 +56,7 @@ export const getSmallGroup = async (id: number) => {
       `
       *,
       small_group_location(location(*)),
-      small_group_user(*, user(*)),
+      small_group_user(*, user(*, user_file(file(link)))),
       small_group_file(file(link))
     `
     )
@@ -73,6 +76,40 @@ export const upsertSmallGroup = async (payload: IPayloadSmallGroup) => {
   return { data, error };
 };
 
+//* USER
+export const upsertSmallGroupUser = async (
+  payload: IPayloadSmallGroupUser[]
+) => {
+  const { data, error } = await supabaseClient
+    .from("small_group_user")
+    .upsert(payload)
+    .select("*")
+    .returns<ISmallGroupUser[]>();
+
+  return { data, error };
+};
+
+export const deleteSmallGroupUser = async (
+  payload: { user_id: string; small_group_id: number }[]
+) => {
+  const filter = payload
+    .map(
+      (p) =>
+        `and(user_id.eq.${p.user_id},small_group_id.eq.${p.small_group_id})`
+    )
+    .join(",");
+
+  const { data, error } = await supabaseClient
+    .from("small_group_user")
+    .delete()
+    .or(filter)
+    .select("*")
+    .returns<ISmallGroupUser[]>();
+
+  return { data, error };
+};
+
+//* FILE
 export const upsertSmallGroupFile = async (payload: IPayloadSmallGroupFile) => {
   const { data, error } = await supabaseClient
     .from("small_group_file")

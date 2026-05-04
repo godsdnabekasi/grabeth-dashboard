@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import DeleteSection from "@/components/page/cool/delete";
+import { ISelectedMember } from "@/components/page/cool/member-item";
+import { MemberList } from "@/components/page/cool/member-list";
+import { ISelectedChangedMember } from "@/components/page/cool/member-setting-modal";
 import { CoolFormValues, coolSchema } from "@/components/page/cool/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,27 +19,36 @@ import { InputDay } from "@/components/ui/input-day";
 import { InputImage } from "@/components/ui/input-image";
 import { InputLocation } from "@/components/ui/input-location";
 import { InputTime } from "@/components/ui/input-time";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
-  onSubmit: (values: CoolFormValues) => void | Promise<void>;
+  mode: "create" | "edit";
   isSubmitting?: boolean;
   submitLabel?: string;
   initialValues?: Partial<CoolFormValues>;
+  onSubmit: (values: CoolFormValues) => void | Promise<void>;
+  onDelete?: () => void;
 };
 
 const CoolForm = ({
-  onSubmit,
+  mode,
   isSubmitting,
   submitLabel,
   initialValues,
+  onSubmit,
+  onDelete,
 }: Props) => {
   const router = useRouter();
+  const [members, setMembers] = useState<Omit<ISelectedMember, "selected">[]>(
+    initialValues?.members || []
+  );
 
-  const { control, handleSubmit } = useForm<CoolFormValues>({
-    resolver: zodResolver(coolSchema),
-    defaultValues: initialValues,
-  });
+  const { control, getValues, setValue, handleSubmit } =
+    useForm<CoolFormValues>({
+      resolver: zodResolver(coolSchema),
+      defaultValues: initialValues,
+    });
 
   const location = useWatch({
     control,
@@ -48,6 +61,47 @@ const CoolForm = ({
         onSubmit({ ...values });
       }),
     [handleSubmit, onSubmit]
+  );
+
+  const onAddMember = useCallback(
+    (selectedMembers: ISelectedMember[]) => {
+      const members = selectedMembers.filter((m) => m.selected);
+      const currentMembers = getValues("members") || [];
+
+      const newMembers = members.filter(
+        (member) =>
+          !currentMembers.some((existing) => existing.id === member.id)
+      );
+      const allMembers = [...currentMembers, ...newMembers];
+
+      setMembers(allMembers);
+      setValue("members", allMembers);
+    },
+    [getValues, setValue]
+  );
+
+  const onRemoveMember = useCallback(
+    (ids: string[]) => {
+      const newMembers = members.filter((member) => !ids.includes(member.id!));
+      setMembers(newMembers);
+      setValue("members", newMembers);
+    },
+    [members, setValue]
+  );
+
+  const onChangedMember = useCallback(
+    (data: ISelectedChangedMember[]) => {
+      const newMembers = members.map((member) => {
+        const changed = data.find((d) => d.id === member.id);
+        if (changed) {
+          return changed;
+        }
+        return member;
+      });
+      setMembers(newMembers);
+      setValue("members", newMembers);
+    },
+    [members, setValue]
   );
 
   return (
@@ -79,7 +133,7 @@ const CoolForm = ({
             containerClassName="col-span-2"
           />
           <InputDay
-            label="Day"
+            label="Meeting Day"
             placeholder="Select day"
             name="day"
             required
@@ -87,7 +141,7 @@ const CoolForm = ({
             disabled={isSubmitting}
           />
           <InputTime
-            label="Start Time"
+            label="Time"
             placeholder="Select time"
             name="time"
             required
@@ -115,15 +169,23 @@ const CoolForm = ({
         </CardContent>
       </Card>
 
-      {/* <Separator />
+      <Separator />
 
-      <EventFormTicket
-        control={control}
-        setValue={setValue}
-        isSubmitting={isSubmitting}
-      /> */}
+      <MemberList
+        members={members || []}
+        onAdd={onAddMember}
+        onRemove={onRemoveMember}
+        onChanged={onChangedMember}
+      />
 
-      <CardFooter className="justify-between">
+      {mode === "edit" && (
+        <>
+          <Separator />
+          <DeleteSection onDelete={() => onDelete?.()} />
+        </>
+      )}
+
+      <CardFooter className="justify-between mt-20">
         <Button variant="outline" onClick={() => router.back()}>
           Back
         </Button>

@@ -1,16 +1,23 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Avatar as AvatarPrimitive } from "radix-ui"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { Avatar as AvatarPrimitive } from "radix-ui";
+
+import { cn } from "@/lib/utils";
 
 function Avatar({
   className,
   size = "default",
+  src,
+  alt,
+  name,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Root> & {
-  size?: "default" | "sm" | "lg"
+  size?: "default" | "sm" | "lg";
+  src: string;
+  alt?: string;
+  name?: string;
 }) {
   return (
     <AvatarPrimitive.Root
@@ -21,8 +28,17 @@ function Avatar({
         className
       )}
       {...props}
-    />
-  )
+    >
+      <AvatarImage src={src} alt={alt} />
+      <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xs uppercase">
+        {name
+          ?.split(" ")
+          .map((n) => n[0])
+          .join("")
+          .slice(0, 2)}
+      </AvatarFallback>
+    </AvatarPrimitive.Root>
+  );
 }
 
 function AvatarImage({
@@ -38,7 +54,7 @@ function AvatarImage({
       )}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarFallback({
@@ -54,7 +70,7 @@ function AvatarFallback({
       )}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
@@ -70,7 +86,7 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<"span">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
@@ -83,7 +99,7 @@ function AvatarGroup({ className, ...props }: React.ComponentProps<"div">) {
       )}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarGroupCount({
@@ -99,7 +115,7 @@ function AvatarGroupCount({
       )}
       {...props}
     />
-  )
+  );
 }
 
 export {
@@ -109,4 +125,4 @@ export {
   AvatarGroup,
   AvatarGroupCount,
   AvatarBadge,
-}
+};

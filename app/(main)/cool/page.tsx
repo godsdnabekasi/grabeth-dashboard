@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSnapshot } from "valtio";
@@ -173,7 +174,12 @@ const CoolPage = () => {
     <>
       <PageHeader
         title="COOL"
-        action={<Button onClick={handleCreate}>Create</Button>}
+        action={
+          <Button onClick={handleCreate}>
+            <PlusCircle className="size-4" />
+            Add New COOL
+          </Button>
+        }
       />
       <DataTable
         columns={parentColumns}
