@@ -24,7 +24,7 @@ import userStore from "@/store/user";
 import { IUser } from "@/types/user";
 
 interface IModalAddMemberProps {
-  members: ISelectedMember[];
+  members: string[];
   onAdd: (selectedMembers: ISelectedMember[]) => void;
 }
 
@@ -60,7 +60,7 @@ const ModalAddMember = ({
       if (error) throw new Error("Failed to fetch church users");
       setMembers(
         data
-          ?.filter((d) => !memberFormValues.find((m) => m.id === d.user?.id))
+          ?.filter((d) => !memberFormValues.find((m) => m === d.user?.id))
           .map((d) => d.user!) || []
       );
     } catch (error) {
@@ -71,8 +71,6 @@ const ModalAddMember = ({
   }, [debouncedSearch, memberFormValues, user?.church_user?.church_id]);
 
   const onAddMember = useCallback(() => {
-    console.log(selectedMembers);
-
     onAdd(selectedMembers);
   }, [onAdd, selectedMembers]);
 

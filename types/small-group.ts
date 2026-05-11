@@ -5,7 +5,7 @@ import { ILocation } from "@/types/location";
 import { IRequest } from "@/types/request";
 import { IUser } from "@/types/user";
 
-export type CoolUserRole = "mvp" | "member" | "support" | "pastor" | "grower";
+export type SmallGroupRole = "mvp" | "member" | "support" | "pastor" | "grower";
 
 export interface ISmallGroup {
   id: number;
@@ -59,7 +59,7 @@ export interface ISmallGroupUser {
   user?: IUser;
   small_group_id?: number;
   small_group?: ISmallGroup;
-  role?: CoolUserRole;
+  role?: SmallGroupRole;
   created_at?: string;
   deleted_at?: string;
 }
@@ -67,7 +67,7 @@ export interface ISmallGroupUser {
 export interface IPayloadSmallGroupUser {
   small_group_id: number;
   user_id: string;
-  role: CoolUserRole;
+  role: SmallGroupRole;
 }
 
 export interface IListCool {

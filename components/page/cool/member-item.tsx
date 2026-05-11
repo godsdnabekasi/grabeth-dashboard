@@ -13,7 +13,7 @@ interface IMemberItem {
 }
 
 export interface ISelectedMember extends MemberFormValues {
-  selected: boolean;
+  selected?: boolean;
 }
 
 const MemberItem = memo(({ member, isSelected, onToggle }: IMemberItem) => {

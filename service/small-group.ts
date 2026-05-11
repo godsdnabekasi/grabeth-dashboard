@@ -1,4 +1,5 @@
 import { supabaseClient } from "@/lib/supabase/client";
+import { formatDate } from "@/lib/utils";
 import { IFilterList } from "@/types";
 import {
   IPayloadSmallGroup,
@@ -49,20 +50,42 @@ export const getSmallGroups = async (
   return { data, error, count };
 };
 
-export const getSmallGroup = async (id: number) => {
-  const { data, error } = await supabaseClient
+export const getSmallGroup = async (
+  id: number,
+  filter?: {
+    start_date: string;
+    end_date: string;
+  }
+) => {
+  const query = supabaseClient
     .from("small_group")
     .select(
       `
       *,
+      small_group_attendance(attendance(*, attendance_user(*))),
       small_group_location(location(*)),
       small_group_user(*, user(*, user_file(file(link)))),
       small_group_file(file(link))
     `
     )
     .eq("id", id)
-    .limit(1)
-    .single<ISmallGroup>();
+    .limit(1);
+
+  if (filter) {
+    query
+      .lte(
+        "small_group_attendance.attendance.date",
+        formatDate(filter.end_date, "YYYY-MM-DD")
+      )
+      .gte(
+        "small_group_attendance.attendance.date",
+        formatDate(filter?.start_date, "YYYY-MM-DD")
+      )
+      .not("small_group_attendance.attendance", "is", null)
+      .not("small_group_attendance.attendance.attendance_user", "is", null);
+  }
+
+  const { data, error } = await query.single<ISmallGroup>();
   return { data, error };
 };
 

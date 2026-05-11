@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import CoolForm from "@/components/page/cool/form";
-import { CoolFormValues } from "@/components/page/cool/types";
+import { CoolFormValues, FilterPeriod } from "@/components/page/cool/types";
 import LoadingSection from "@/components/ui/loading-section";
 import PageHeader from "@/components/ui/page-header";
 import { changeTimeZone, formatTime } from "@/lib/utils";
@@ -21,7 +21,7 @@ import {
   upsertSmallGroupLocation,
   upsertSmallGroupUser,
 } from "@/service/small-group";
-import { CoolUserRole } from "@/types/small-group";
+import { ISmallGroup, SmallGroupRole } from "@/types/small-group";
 
 async function handleImageUpload(
   coverImage: File,
@@ -65,47 +65,70 @@ const CoolDetailPage = () => {
     submit: false,
   });
   const [item, setItem] = useState<CoolFormValues | undefined>();
+  const [smallGroupData, setSmallGroupData] = useState<
+    ISmallGroup | undefined
+  >();
+  const period = {
+    start_date: moment().startOf("month").format("DD MMM YYYY"),
+    end_date: moment().endOf("month").format("DD MMM YYYY"),
+  };
 
-  const fetchItem = useCallback(async () => {
-    try {
-      setIsLoading((prev) => ({ ...prev, fetch: true }));
-      const { data, error } = await getSmallGroup(coolId);
-      if (error) throw error;
-      setItem({
-        id: data?.id,
-        coverImage: data?.small_group_file?.file?.link,
-        name: data?.name || "",
-        description: data?.description || "",
-        church_id: String(data?.church_id),
-        day: data?.meet_time ? moment(data?.meet_time).format("dddd") : "",
-        time: data?.meet_time ? formatTime(data?.meet_time) : "",
-        location: data?.small_group_location?.[0]?.location
-          ? {
-              id: data?.small_group_location?.[0].location?.id,
-              name: data?.small_group_location?.[0].location?.name,
-              address: data?.small_group_location?.[0].location?.address,
-              lat: Number(
-                data?.small_group_location?.[0].location?.long_lat?.[0]
-              ),
-              lng: Number(
-                data?.small_group_location?.[0].location?.long_lat?.[1]
-              ),
-            }
-          : undefined,
-        members: data?.small_group_user?.map((item) => ({
-          name: item.user?.name || "-",
-          id: item.user?.id,
-          joinedDate: moment(item.created_at).format("DD MMM YYYY"),
-          role: item.role || "-",
-          image: item.user?.user_file?.file?.link,
-        })),
-      });
-    } catch {
-      toast.error("Failed to fetch cool");
-    } finally {
-      setIsLoading((prev) => ({ ...prev, fetch: false }));
-    }
-  }, [coolId]);
+  const fetchItem = useCallback(
+    async (filter?: {
+      periode: number;
+      start_date: string;
+      end_date: string;
+    }) => {
+      try {
+        const { data, error } = await getSmallGroup(coolId, {
+          start_date: filter?.start_date || period.start_date,
+          end_date: filter?.end_date || period.end_date,
+        });
+        if (error) throw error;
+
+        setSmallGroupData(data || undefined);
+
+        setItem({
+          id: data?.id,
+          coverImage: data?.small_group_file?.file?.link,
+          name: data?.name || "",
+          description: data?.description || "",
+          church_id: String(data?.church_id),
+          day: data?.meet_time ? moment(data?.meet_time).format("dddd") : "",
+          time: data?.meet_time ? formatTime(data?.meet_time) : "",
+          location: data?.small_group_location?.[0]?.location
+            ? {
+                id: data?.small_group_location?.[0].location?.id,
+                name: data?.small_group_location?.[0].location?.name,
+                address: data?.small_group_location?.[0].location?.address,
+                lat: Number(
+                  data?.small_group_location?.[0].location?.long_lat?.[0]
+                ),
+                lng: Number(
+                  data?.small_group_location?.[0].location?.long_lat?.[1]
+                ),
+              }
+            : undefined,
+          members: data?.small_group_user?.map((item) => ({
+            name: item.user?.name || "-",
+            id: item.user?.id,
+            joinedDate: moment(item.created_at).format("DD MMM YYYY"),
+            role: item.role || "-",
+            image: item.user?.user_file?.file?.link,
+          })),
+        });
+      } catch {
+        toast.error("Failed to fetch cool");
+      }
+    },
+    [coolId, period.end_date, period.start_date]
+  );
+
+  const initialFetch = useCallback(async () => {
+    setIsLoading((prev) => ({ ...prev, fetch: true }));
+    await fetchItem();
+    setIsLoading((prev) => ({ ...prev, fetch: false }));
+  }, [fetchItem]);
 
   const onSubmit = useCallback(
     async (formData: CoolFormValues) => {
@@ -148,7 +171,7 @@ const CoolDetailPage = () => {
             newMembers.map((member) => ({
               small_group_id: coolId,
               user_id: member.id!,
-              role: (member.newRole || member.role) as CoolUserRole,
+              role: (member.newRole || member.role) as SmallGroupRole,
             }))
           );
           if (smallGroupUserError)
@@ -161,7 +184,7 @@ const CoolDetailPage = () => {
             changedMemberRole.map((member) => ({
               small_group_id: coolId,
               user_id: member.id!,
-              role: member.newRole as CoolUserRole,
+              role: member.newRole as SmallGroupRole,
             }))
           );
           if (smallGroupUserError)
@@ -204,14 +227,14 @@ const CoolDetailPage = () => {
         }
 
         toast.success("Successfully updated COOL");
-        await fetchItem();
+        await initialFetch();
       } catch (error) {
         toast.error(String(error));
       } finally {
         setIsLoading((prev) => ({ ...prev, submit: false }));
       }
     },
-    [coolId, fetchItem, item?.members]
+    [coolId, initialFetch, item?.members]
   );
 
   const onDelete = useCallback(async () => {
@@ -244,9 +267,29 @@ const CoolDetailPage = () => {
     }
   }, [coolId, item, router]);
 
+  const onChangePeriod = useCallback(
+    (period: FilterPeriod) => {
+      const periodMonth = moment().subtract(period === 1 ? 0 : period, "month");
+      const currentMonth = moment().format("YYYY-MM-DD");
+      const targetMonth = periodMonth.startOf("month").format("YYYY-MM-DD");
+
+      // setPeriod({
+      //   start_date: moment(targetMonth).format("DD MMM YYYY"),
+      //   end_date: moment(currentMonth).format("DD MMM YYYY"),
+      // });
+
+      fetchItem({
+        periode: period,
+        start_date: targetMonth,
+        end_date: currentMonth,
+      });
+    },
+    [fetchItem]
+  );
+
   useEffect(() => {
-    fetchItem();
-  }, [fetchItem]);
+    initialFetch();
+  }, [initialFetch]);
 
   return (
     <>
@@ -259,8 +302,10 @@ const CoolDetailPage = () => {
           initialValues={item}
           isSubmitting={isLoading.submit}
           submitLabel="Update"
+          smallGroupData={smallGroupData}
           onSubmit={onSubmit}
           onDelete={onDelete}
+          onChangePeriod={onChangePeriod}
         />
       )}
     </>

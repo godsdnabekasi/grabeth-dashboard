@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSnapshot } from "valtio";
 
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,17 +47,17 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage
-                  src={currentUser?.user_file?.file?.link}
-                  alt={currentUser?.name}
-                />
-              </Avatar>
+              <Avatar
+                src={currentUser?.user_file?.file?.link ?? ""}
+                alt={currentUser?.name}
+                name={currentUser?.name}
+                className="h-8 w-8 rounded-lg"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
                   {currentUser?.name}
                 </span>
-                <span className="truncate text-xs">{currentUser?.email}</span>
+                <span className="truncate text-xs">{currentUser?.nij ?? currentUser?.nickname}</span>
               </div>
               <ChevronsUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>

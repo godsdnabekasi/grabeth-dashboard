@@ -20,7 +20,7 @@ import {
   upsertSmallGroupUser,
 } from "@/service/small-group";
 import userStore from "@/store/user";
-import { CoolUserRole } from "@/types/small-group";
+import { SmallGroupRole } from "@/types/small-group";
 
 async function handleImageUpload(
   coverImage: File,
@@ -92,7 +92,7 @@ const CoolCreatePage = () => {
             members.map((member) => ({
               small_group_id: smallGroupData!.id,
               user_id: member.id!,
-              role: (member.newRole || member.role) as CoolUserRole,
+              role: (member.newRole || member.role) as SmallGroupRole,
             }))
           );
           if (smallGroupUserError)

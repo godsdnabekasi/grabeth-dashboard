@@ -1,5 +1,5 @@
 import { SelectOption } from "@/components/ui/select-container";
-import { CoolUserRole } from "@/types/small-group";
+import { SmallGroupRole } from "@/types/small-group";
 
 export const PAGE_SIZE_OPTIONS: SelectOption[] = [
   {
@@ -25,7 +25,7 @@ export const PAGE_SIZE_OPTIONS: SelectOption[] = [
 ];
 
 export const SMALL_GROUP_ROLES: Record<
-  CoolUserRole,
+  SmallGroupRole,
   { label: string; description?: string; color: string }
 > = {
   pastor: {

@@ -21,7 +21,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { SMALL_GROUP_ROLES } from "@/config/common";
-import { CoolUserRole } from "@/types/small-group";
+import { SmallGroupRole } from "@/types/small-group";
 
 interface IMemberSettingModal {
   isShowModal: boolean;
@@ -32,7 +32,7 @@ interface IMemberSettingModal {
 }
 
 export interface ISelectedChangedMember extends ISelectedMember {
-  newRole: CoolUserRole;
+  newRole: SmallGroupRole;
 }
 
 export interface ISelectedRemoveMember {
@@ -47,18 +47,17 @@ const MemberSettingModal = ({
   onSave,
   onRemove,
 }: IMemberSettingModal) => {
-  const [selectedRole, setSelectedRole] = useState<CoolUserRole>(
-    member?.role as CoolUserRole
+  const [selectedRole, setSelectedRole] = useState<SmallGroupRole>(
+    member?.role as SmallGroupRole
   );
   const role = member?.newRole || member?.role;
 
   const onSaveChanged = useCallback(() => {
-    console.log(selectedRole);
-
     onSave?.({
       ...(member as ISelectedChangedMember),
       id: member?.id as string,
       newRole: selectedRole,
+      selected: true,
     });
   }, [onSave, member, selectedRole]);
 
@@ -90,10 +89,10 @@ const MemberSettingModal = ({
                 className="capitalize font-semibold"
                 style={{
                   backgroundColor:
-                    SMALL_GROUP_ROLES[role as CoolUserRole]?.color,
+                    SMALL_GROUP_ROLES[role as SmallGroupRole]?.color,
                 }}
               >
-                {SMALL_GROUP_ROLES[role as CoolUserRole]?.label}
+                {SMALL_GROUP_ROLES[role as SmallGroupRole]?.label}
               </Badge>
             </div>
           </div>
@@ -104,7 +103,7 @@ const MemberSettingModal = ({
               <RadioGroup
                 defaultValue={role}
                 onValueChange={(value) =>
-                  setSelectedRole(value as CoolUserRole)
+                  setSelectedRole(value as SmallGroupRole)
                 }
               >
                 {Object.entries(SMALL_GROUP_ROLES).map(([key, value]) => (
