@@ -1,6 +1,7 @@
 import { IChurch } from "@/types/church";
 import { IUserContact } from "@/types/contact";
 import { IFile } from "@/types/file";
+import { ISmallGroupUser } from "@/types/small-group";
 
 export interface IUser {
   id: string;
@@ -10,6 +11,7 @@ export interface IUser {
   birthdate?: string;
   nij?: string;
   phoneNumber?: string;
+  email?: string;
   bio?: string;
   website?: string;
   user_contact?: IUserContact[];
@@ -26,6 +28,8 @@ export interface IUser {
     user?: IUser;
     role?: "admin" | "user" | "finance";
   };
+
+  small_group_user?: ISmallGroupUser | null;
 }
 
 export interface IUserTransform extends IUser {

@@ -19,6 +19,23 @@ function Avatar({
   alt?: string;
   name?: string;
 }) {
+  const AVATAR_COLORS = [
+    "bg-blue-100 text-blue-800",
+    "bg-teal-100 text-teal-800",
+    "bg-violet-100 text-violet-800",
+    "bg-pink-100 text-pink-800",
+    "bg-amber-100 text-amber-800",
+    "bg-green-100 text-green-800",
+  ];
+  const colorClass = AVATAR_COLORS[(name?.length ?? 0) % AVATAR_COLORS.length];
+  function getInitials(name: string): string {
+    return name
+      .split(" ")
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("");
+  }
+
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"
@@ -30,12 +47,13 @@ function Avatar({
       {...props}
     >
       <AvatarImage src={src} alt={alt} />
-      <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xs uppercase">
-        {name
-          ?.split(" ")
-          .map((n) => n[0])
-          .join("")
-          .slice(0, 2)}
+      <AvatarFallback
+        className={cn(
+          "bg-gray-100 text-gray-500 font-bold text-xs uppercase",
+          colorClass
+        )}
+      >
+        {getInitials(name || "")}
       </AvatarFallback>
     </AvatarPrimitive.Root>
   );

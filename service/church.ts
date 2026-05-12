@@ -26,8 +26,12 @@ export const getChurchUsers = async (
     .from("church_user")
     .select(
       `
-      *,
-      user(*, small_group_user(*), user_file(*, file(*)))
+        *,
+        user(*,
+          small_group_user(*),
+          user_file(*, file(*)),
+          user_contact(*, contact(*))
+        )
       `
     )
     .eq("church_id", filter?.church_id)

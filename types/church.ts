@@ -21,7 +21,7 @@ export interface IChurch {
 
 export interface IChurchUser {
   church_id: number;
-  user_id: number;
+  user_id: string;
   user?: IUser;
   role: TChurchUserRole;
   created_at?: string;
