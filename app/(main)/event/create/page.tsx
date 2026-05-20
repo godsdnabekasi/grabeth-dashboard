@@ -76,21 +76,23 @@ const CreateEventPage = () => {
         }
 
         if (location && location.name) {
-          const { data: locationData } = await upsertLocation({
-            id: location?.id ? Number(location.id) : undefined,
-            name: location?.name,
-            address: location?.address || "",
-            long_lat: [
-              String(location?.lng) || "",
-              String(location?.lat) || "",
-            ],
-            type: "building",
-          });
+          const { data: locationData } = await upsertLocation([
+            {
+              id: location?.id ? Number(location.id) : undefined,
+              name: location?.name,
+              address: location?.address || "",
+              long_lat:
+                location?.lng && location?.lat
+                  ? [Number(location.lng), Number(location.lat)]
+                  : undefined,
+              type: "building",
+            },
+          ]);
 
           if (!formData.location?.id && locationData) {
             await upsertEventLocation({
               event_id: data!.id,
-              location_id: Number(locationData.id),
+              location_id: Number(locationData?.[0]?.id),
             });
           }
         }

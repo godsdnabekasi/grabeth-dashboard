@@ -1,13 +1,21 @@
 import { supabaseClient } from "@/lib/supabase/client";
 import { IFilterList } from "@/types";
-import { IUser, IUserTransform } from "@/types/user";
+import {
+  IPayloadUser,
+  IPayloadUserFile,
+  IUser,
+  IUserActivity,
+  IUserFile,
+  IUserTransform,
+} from "@/types/user";
 
 const QUERY_USER = `
     *,
     user_file(*, file(*)),
     user_contact(*, contact(*)),
     church_user(*, church(*)),
-    small_group_user(*, small_group(*))
+    small_group_user(*, small_group(*)),
+    user_location(*, location(*, district(*), city(*), province(*)))
   `;
 
 export type TGenderOptions = "male" | "female";
@@ -21,11 +29,22 @@ export const getUser = async (userId: string) => {
 
   const user = {
     ...data,
-    phoneNumber: data?.user_contact?.find(
-      (item) => item.contact?.type === "phone"
-    )?.contact?.value,
-    email: data?.user_contact?.find((item) => item.contact?.type === "email")
-      ?.contact?.value,
+    contact: {
+      phoneNumber: data?.user_contact?.find(
+        (item) => item.contact?.type === "phone"
+      )?.contact?.value,
+      phoneId: data?.user_contact?.find(
+        (item) => item.contact?.type === "phone"
+      )?.contact_id,
+      email: data?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact?.value,
+      emailId: data?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact_id,
+    },
   } as IUserTransform;
 
   return { data: user, error };
@@ -61,14 +80,59 @@ export const getUsersByChurchId = async (
     ...d,
     phoneNumber: d?.user_contact?.find((item) => item.contact?.type === "phone")
       ?.contact?.value,
-    email: d?.user_contact?.find((item) => item.contact?.type === "email")
-      ?.contact?.value,
+    email: d?.user_contact?.find(
+      (item) => item.contact?.type === "gmail" || item.contact?.type === "email"
+    )?.contact?.value,
   })) as IUserTransform[];
 
   return { data: response, error, count };
 };
 
-// DELETE
+//* CREATE
+export const upsertUser = async (payload: IPayloadUser) => {
+  const { data, error } = await supabaseClient
+    .from("user")
+    .upsert(payload)
+    .select()
+    .single<IUser>();
+
+  return { data, error };
+};
+
+//* USER ACTIVITY
+export const getUserActivities = async (
+  user_id: string,
+  filter?: IFilterList
+) => {
+  const query = supabaseClient
+    .from("user_activities")
+    .select("*", { count: "exact" })
+    .eq("user_id", user_id)
+    .order("created_at", { ascending: false });
+
+  if (filter?.pageSize && filter?.page) {
+    const from = (filter.page - 1) * filter.pageSize;
+    const to = from + filter.pageSize - 1;
+    query.range(from, to);
+  }
+
+  const { data, error, count } = await query.returns<IUserActivity[]>();
+
+  return { data, error, count };
+};
+
+//* USER FILE
+export const insertUserFile = async (payload: IPayloadUserFile) => {
+  const { data, error } = await supabaseClient
+    .from("user_file")
+    .insert(payload)
+    .select("*")
+    .single<IUserFile>();
+
+  return { data, error };
+};
+
+//* DELETE
 export const deleteUserAuth = async (id: string) => {
   const { data, error } = await supabaseClient.auth.admin.deleteUser(id);
 

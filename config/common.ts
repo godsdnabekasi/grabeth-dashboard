@@ -1,4 +1,5 @@
 import { SelectOption } from "@/components/ui/select-container";
+import { LocationType } from "@/types/location";
 import { SmallGroupRole } from "@/types/small-group";
 
 export const PAGE_SIZE_OPTIONS: SelectOption[] = [
@@ -59,3 +60,29 @@ export const SMALL_GROUP_ROLES: Record<
     color: "#84CC16",
   },
 };
+
+export const GENDER_OPTIONS = [
+  { label: "Male", value: "male" },
+  { label: "Female", value: "female" },
+] as SelectOption[];
+
+export const LOCATION_OPTIONS = [
+  { label: "Apartment", value: "apartment" },
+  { label: "Building", value: "building" },
+  { label: "Home", value: "home" },
+  { label: "Hospital", value: "hospital" },
+  { label: "Mall", value: "mall" },
+  { label: "Office", value: "office" },
+  { label: "Open Space", value: "open space" },
+  { label: "Other", value: "other" },
+  { label: "Park", value: "park" },
+  { label: "Parking Area", value: "parking area" },
+  { label: "Playground", value: "playground" },
+  { label: "Public Facility", value: "public facility" },
+  { label: "Recidential", value: "residential" },
+  { label: "Restaurant", value: "restaurant" },
+  { label: "Toilet", value: "toilet" },
+] as {
+  label: string;
+  value: LocationType;
+}[];

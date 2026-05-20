@@ -205,13 +205,15 @@ const CoolDetailPage = () => {
 
         if (location?.name) {
           const { data: locationData, error: locationError } =
-            await upsertLocation({
-              id: location.id,
-              name: location.name || "-",
-              address: location.address || "-",
-              long_lat: [String(location.lat), String(location.lng)],
-              type: "home",
-            });
+            await upsertLocation([
+              {
+                id: location.id,
+                name: location.name || "-",
+                address: location.address || "-",
+                long_lat: [Number(location.lat), Number(location.lng)],
+                type: "home",
+              },
+            ]);
           if (locationError)
             throw "Failed to update location, please try again later";
 
@@ -219,7 +221,7 @@ const CoolDetailPage = () => {
             const { error: locationSmallGroupError } =
               await upsertSmallGroupLocation({
                 small_group_id: coolId,
-                location_id: Number(locationData?.id),
+                location_id: Number(locationData?.[0]?.id),
               });
             if (locationSmallGroupError)
               throw "Failed to update location, please try again later";

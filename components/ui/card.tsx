@@ -11,6 +11,7 @@ function Card({
   children,
   footer,
   contentClassName,
+  footerClassName,
   ...props
 }: Omit<React.ComponentProps<"div">, "title"> & {
   size?: "default" | "sm";
@@ -19,6 +20,7 @@ function Card({
   action?: React.ReactNode;
   footer?: React.ReactNode;
   contentClassName?: string;
+  footerClassName?: string;
 }) {
   return (
     <div
@@ -44,7 +46,7 @@ function Card({
         <CardContent className={contentClassName}>{children}</CardContent>
       )}
 
-      {footer && <CardFooter>{footer}</CardFooter>}
+      {footer && <CardFooter className={footerClassName}>{footer}</CardFooter>}
     </div>
   );
 }

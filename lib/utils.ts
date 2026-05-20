@@ -22,6 +22,10 @@ export function formatDateTime(
   return `${formatDate(date, dateFormat)} ${formatTime(date, timeFormat)}`;
 }
 
+export function formatDateAgo(date: string | Date) {
+  return moment(date).fromNow();
+}
+
 export function formatDateTimeISO(date: string) {
   return moment(date).toISOString();
 }

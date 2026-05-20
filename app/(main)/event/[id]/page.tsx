@@ -75,20 +75,25 @@ async function handleLocationSync(
 ) {
   if (!location?.name) return;
 
-  const { data: locationData, error } = await upsertLocation({
-    id: location.id ? Number(location.id) : undefined,
-    name: location.name,
-    address: location.address || "",
-    long_lat: [String(location.lng) || "", String(location.lat) || ""],
-    type: "building",
-  });
+  const { data: locationData, error } = await upsertLocation([
+    {
+      id: location.id ? Number(location.id) : undefined,
+      name: location.name,
+      address: location.address || "",
+      long_lat:
+        location.lng && location.lat
+          ? [Number(location.lng), Number(location.lat)]
+          : undefined,
+      type: "building",
+    },
+  ]);
 
   if (error) throw error;
 
   if (isNewLocation && locationData) {
     await upsertEventLocation({
       event_id: eventId,
-      location_id: Number(locationData.id),
+      location_id: Number(locationData?.[0]?.id),
     });
   }
 }

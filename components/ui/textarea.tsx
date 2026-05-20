@@ -52,10 +52,10 @@ function TextareaContainer({
           rows={single ? 1 : rows}
           data-slot="textarea"
           className={cn(
-            "flex flex-1 w-full min-w-0 resize-none",
+            "flex flex-1 w-full min-w-0",
             "focus-visible:outline-none",
             "placeholder:text-muted-foreground",
-            single && "max-h-20 field-sizing-content min-h-5"
+            single && "max-h-20 field-sizing-content min-h-5 resize-none"
           )}
           {...props}
         />

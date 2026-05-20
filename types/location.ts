@@ -1,3 +1,5 @@
+import { IUser } from "@/types/user";
+
 export type LocationType =
   | "home"
   | "office"
@@ -30,45 +32,57 @@ export type AgeGroupType =
   | "all";
 
 export interface IProvince {
-  id?: number;
-  name?: string;
+  id: number;
+  name: string;
 }
 
 export interface ICity {
-  id?: number;
-  province_id?: number;
+  id: number;
+  province_id: number;
   province?: IProvince;
-  name?: string;
+  name: string;
 }
 
 export interface IDistrict {
-  id?: number;
-  city_id?: number;
+  id: number;
+  city_id: number;
   city?: ICity;
-  name?: string;
+  name: string;
   alias?: string;
 }
 
 export interface ILocation {
   id?: number;
   name: string;
-  type: LocationType;
+  type?: LocationType;
   address: string;
   description?: string;
-  city_id?: string;
+  city_id?: number;
   city?: ICity;
-  district_id?: string;
+  district_id?: number;
   district?: IDistrict;
-  province_id?: string;
+  province_id?: number;
   province?: IProvince;
-  postal_code?: string;
+  postal_code?: number;
   age_group?: AgeGroupType;
   capacity?: number;
-  long_lat?: string[];
+  long_lat?: number[] | null;
   is_private?: boolean;
   is_open?: boolean;
 }
 
-export interface IPayloadLocation extends Omit<ILocation, "id"> {
-  id?: number | undefined;
+export interface IPayloadLocation extends Omit<
+  ILocation,
+  "id" | "province" | "city" | "district"
+> {
+  id?: number | null;
+}
+
+export type IPayloadUserLocation = Omit<IUserLocation, "user | location">;
+
+export interface IUserLocation {
+  user_id: string;
+  user: IUser;
+  location_id: number;
+  location: ILocation;
 }
