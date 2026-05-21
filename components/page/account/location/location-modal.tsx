@@ -196,7 +196,7 @@ const AccountLocationModal = ({
 
   const onSubmit = async (data: AccountLocationFormValues) => {
     try {
-      setIsSubmitting(true);
+      if (data) setIsSubmitting(true);
       onAddLocation(
         {
           ...data,

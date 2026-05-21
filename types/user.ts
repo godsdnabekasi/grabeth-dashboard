@@ -45,9 +45,15 @@ export interface IUserTransform extends IUser {
 
 export interface IPayloadUser extends Omit<
   IUser,
-  "user_file" | "church_user" | "small_group_user" | "id" | "contact"
+  | "user_file"
+  | "church_user"
+  | "small_group_user"
+  | "id"
+  | "contact"
+  | "birthdate"
 > {
   id?: string;
+  birthdate?: Date | undefined;
 }
 
 //* USER ACTIVITY

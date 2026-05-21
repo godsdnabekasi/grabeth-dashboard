@@ -2,7 +2,7 @@ import { toast } from "sonner";
 
 import {
   deleteLocation,
-  upsertLocation,
+  upsertLocations,
   upsertUserLocation,
 } from "@/service/location";
 import { IPayloadLocation, IPayloadUserLocation } from "@/types/location";
@@ -17,13 +17,13 @@ export const submitLocation = async (
     const newLocation = location.filter((l) => !l.id);
 
     if (existingLocation.length > 0) {
-      const { error: locationError } = await upsertLocation(existingLocation);
+      const { error: locationError } = await upsertLocations(existingLocation);
       if (locationError) throw locationError;
     }
 
     if (newLocation.length > 0) {
       const { data: locationData, error: locationError } =
-        await upsertLocation(newLocation);
+        await upsertLocations(newLocation);
       if (locationError) throw locationError;
 
       const userLocation = locationData!.map((l) => ({

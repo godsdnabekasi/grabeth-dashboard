@@ -12,12 +12,16 @@ import PageHeader from "@/components/ui/page-header";
 import { formatDate } from "@/lib/utils";
 import {
   upsertEvent,
+  upsertEventBooking,
+  upsertEventBookingCategory,
+  upsertEventCategory,
   upsertEventFile,
   upsertEventLocation,
 } from "@/service/event";
 import { uploadFile, uploadFileToStorage } from "@/service/file";
 import { upsertLocation } from "@/service/location";
 import userStore from "@/store/user";
+import { IEventBookingCategory } from "@/types/event";
 
 const CreateEventPage = () => {
   const router = useRouter();
@@ -28,7 +32,8 @@ const CreateEventPage = () => {
     async (formData: EventFormValues) => {
       try {
         setIsLoading(true);
-        const { date, cover_image, location, ...restFormData } = formData;
+        const { date, cover_image, location, tickets, ...restFormData } =
+          formData;
         let fileId = null;
         const start_time =
           formatDate(date!, "YYYY-MM-DD") +
@@ -50,6 +55,7 @@ const CreateEventPage = () => {
           unpublish_time: String(restFormData.unpublish_time?.toISOString()),
         });
         if (error) throw error;
+        const eventId = data!.id;
 
         if (typeof cover_image === "object") {
           const { data, error } = await uploadFileToStorage({
@@ -76,26 +82,113 @@ const CreateEventPage = () => {
         }
 
         if (location && location.name) {
-          const { data: locationData } = await upsertLocation([
-            {
-              id: location?.id ? Number(location.id) : undefined,
-              name: location?.name,
-              address: location?.address || "",
-              long_lat:
-                location?.lng && location?.lat
-                  ? [Number(location.lng), Number(location.lat)]
-                  : undefined,
-              type: "building",
-            },
-          ]);
+          const { data: locationData } = await upsertLocation({
+            id: location?.id ? Number(location.id) : undefined,
+            name: location?.name,
+            address: location?.address || "",
+            long_lat:
+              location?.lng && location?.lat
+                ? [Number(location.lng), Number(location.lat)]
+                : undefined,
+            type: "building",
+          });
 
           if (!formData.location?.id && locationData) {
             await upsertEventLocation({
               event_id: data!.id,
-              location_id: Number(locationData?.[0]?.id),
+              location_id: Number(locationData?.id),
             });
           }
         }
+
+        //* EVENT BOOKING
+        const ticketIdMap: Record<string, number> = {};
+        const existsTicket = tickets?.filter((t) => t.id) || [];
+        const newTicket = tickets?.filter((t) => !t.id) || [];
+
+        existsTicket.forEach((t) => {
+          if (t.id) ticketIdMap[t.title!] = t.id;
+        });
+
+        await Promise.all([
+          existsTicket.length > 0 &&
+            upsertEventBooking(
+              existsTicket.map((t) => ({
+                event_id: eventId,
+                title: t.title!,
+                description: t.description || "",
+                terms: t.terms || "",
+                publish_time: String(restFormData.publish_time?.toISOString()),
+                unpublish_time: String(
+                  restFormData.unpublish_time?.toISOString()
+                ),
+              }))
+            ),
+
+          (async () => {
+            if (newTicket.length === 0) return;
+            const { data } = await upsertEventBooking(
+              newTicket.map((t) => ({
+                event_id: eventId,
+                title: t.title!,
+                description: t.description || "",
+                terms: t.terms || "",
+                publish_time: String(restFormData.publish_time?.toISOString()),
+                unpublish_time: String(
+                  restFormData.unpublish_time?.toISOString()
+                ),
+              }))
+            );
+            data?.forEach((t) => {
+              ticketIdMap[t.title] = t.id;
+            });
+          })(),
+        ]);
+
+        //* EVENT CATEGORY
+        const categoriesFlatten =
+          tickets?.flatMap((t) =>
+            t.categories?.map((c) => ({ ...c, ticketTitle: t.title }))
+          ) || [];
+
+        const categoryIdMap: Record<string, number> = {};
+        const newCategory = categoriesFlatten.filter((c) => !c?.id);
+
+        if (newCategory.length === 0) return;
+        const { data: categoryData } = await upsertEventCategory(
+          newCategory.map((c) => ({
+            event_id: eventId,
+            title: c?.title ?? "",
+            description: c?.description ?? "",
+          }))
+        );
+        categoryData?.forEach((c) => {
+          categoryIdMap[c.title] = c.id;
+        });
+
+        //* EVENT BOOKING CATEGORY
+        const bookingCategoryRows: IEventBookingCategory[] = [];
+        tickets?.forEach((t) => {
+          const tId = t.id || (t.title ? ticketIdMap[t.title] : null);
+          if (!tId) return;
+
+          t.categories?.forEach((c) => {
+            const cId = c.id || (c.title ? categoryIdMap[c.title] : null);
+            if (!cId) return;
+
+            bookingCategoryRows.push({
+              event_booking_id: tId,
+              event_category_id: cId,
+              price: c.price ?? null,
+              final_price: c.final_price ?? null,
+            });
+          });
+        });
+
+        if (bookingCategoryRows.length > 0) {
+          await upsertEventBookingCategory(bookingCategoryRows);
+        }
+
         toast.success("Successfully created");
         router.back();
       } catch {

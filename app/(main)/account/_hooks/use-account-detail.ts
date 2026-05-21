@@ -2,20 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useSnapshot } from "valtio";
 
 import { submitEmail, submitPhone } from "../_services/contact.service";
 import { submitPhoto } from "../_services/photo.service";
 import { mapUserToForm } from "../_utils/account.mapper";
 import { submitLocation } from "@/app/(main)/account/_services/location.service";
 import { AccountFormValues } from "@/components/page/account/types";
+import { createAuthUser } from "@/service/auth";
 import { getUser, upsertUser } from "@/service/user";
+import userStore from "@/store/user";
 import { LocationType } from "@/types/location";
 
-export const useAccountDetail = () => {
+export const useAccountDetail = (mode?: "create" | "edit") => {
+  const router = useRouter();
   const params = useParams();
   const userId = String(params.id);
+  const { user } = useSnapshot(userStore);
 
   const [item, setItem] = useState<AccountFormValues>();
   const [isFetching, setIsFetching] = useState(false);
@@ -47,26 +52,56 @@ export const useAccountDetail = () => {
         setIsSubmitting(true);
 
         const { photo, fileId, contact, location, ...restFormData } = formData;
+        let currentUserId = mode === "create" ? restFormData.id! : userId;
 
-        const { error } = await upsertUser(restFormData);
+        if (mode === "create") {
+          const { data, error } = await createAuthUser({
+            email: contact.email!,
+            password: contact.password!,
+            options: {
+              data: {
+                full_name: restFormData.name,
+                name: restFormData.name,
+                birthdate: String(restFormData.birthdate?.toISOString()),
+                gender: String(restFormData.gender),
+                church_id: user!.church_user!.church_id!,
+                phone: String(contact.phoneNumber),
+                nickname: restFormData.nickname,
+                nij: restFormData.nij,
+              },
+            },
+          });
+          if (error) throw error;
 
-        if (error) throw error;
+          currentUserId = data?.user?.id || "";
+        } else {
+          const userPayload = {
+            ...restFormData,
+            birthdate: restFormData?.birthdate || undefined,
+          };
+
+          const { error } = await upsertUser(userPayload);
+
+          if (error) throw error;
+        }
 
         //* Upload photo
         if (photo instanceof File) {
           await submitPhoto({
             photo,
-            userId,
+            userId: currentUserId,
             fileId,
           });
         }
 
         //* Submit contacts in parallel
         await Promise.all([
-          contact.email ? submitEmail(contact, userId) : Promise.resolve(),
+          contact.email
+            ? submitEmail(contact, currentUserId)
+            : Promise.resolve(),
 
           contact.phoneNumber
-            ? submitPhone(contact, userId)
+            ? submitPhone(contact, currentUserId)
             : Promise.resolve(),
         ]);
 
@@ -94,11 +129,13 @@ export const useAccountDetail = () => {
                 }
               : {}),
           })) || [];
-        await submitLocation(cleanLocation, userId, deletedLocationIds);
+        await submitLocation(cleanLocation, currentUserId, deletedLocationIds);
 
-        toast.success("User updated successfully");
-
-        await fetchItem();
+        toast.success(
+          `User ${mode === "create" ? "created" : "updated"} successfully`
+        );
+        if (mode === "create") router.back();
+        else await fetchItem();
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Failed to update user"
@@ -109,12 +146,12 @@ export const useAccountDetail = () => {
         setIsSubmitting(false);
       }
     },
-    [fetchItem, item?.location, userId]
+    [fetchItem, item?.location, mode, router, user, userId]
   );
 
   useEffect(() => {
-    fetchItem();
-  }, [fetchItem]);
+    if (mode === "edit") fetchItem();
+  }, [fetchItem, mode]);
 
   return {
     item,

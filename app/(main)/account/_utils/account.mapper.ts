@@ -1,4 +1,5 @@
 import { AccountFormValues } from "@/components/page/account/types";
+import { LocationType } from "@/types/location";
 import { IUserTransform } from "@/types/user";
 
 export const mapUserToForm = (data: IUserTransform): AccountFormValues => {
@@ -11,6 +12,7 @@ export const mapUserToForm = (data: IUserTransform): AccountFormValues => {
 
     contact: {
       email: data.contact?.email || "",
+      password: data.contact?.email ? "secret" : "",
       phoneNumber: data.contact?.phoneNumber
         ? Number(data.contact.phoneNumber)
         : 0,
@@ -18,7 +20,7 @@ export const mapUserToForm = (data: IUserTransform): AccountFormValues => {
       phoneId: data.contact?.phoneId,
     },
 
-    birthdate: data.birthdate || "",
+    birthdate: data.birthdate ? new Date(data.birthdate) : null,
 
     gender: data.gender,
 
@@ -36,7 +38,7 @@ export const mapUserToForm = (data: IUserTransform): AccountFormValues => {
       province_id: String(loc.location?.province_id || ""),
       city_id: String(loc.location?.city_id || ""),
       district_id: String(loc.location?.district_id || ""),
-      type: loc.location?.type,
+      type: loc.location?.type as LocationType,
       latitude: String(loc.location?.long_lat?.[1]),
       longitude: String(loc.location?.long_lat?.[0]),
     })),

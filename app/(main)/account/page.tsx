@@ -156,7 +156,7 @@ const AccountPage = () => {
       birthdate: d.birthdate || "",
       gender: d.gender as TGenderOptions,
       photo: d.user_file?.file?.link || "",
-      contact: d.email || d.phoneNumber || "-",
+      contact: d.contact?.email || d.contact?.phoneNumber || "-",
       small_group: d.small_group_user
         ? {
             name: d.small_group_user?.small_group?.name || "-",

@@ -6,7 +6,7 @@ import LoadingSection from "@/components/ui/loading-section";
 import PageHeader from "@/components/ui/page-header";
 
 const AccountDetailPage = () => {
-  const { item, isFetching, isSubmitting, onSubmit } = useAccountDetail();
+  const { item, isFetching, isSubmitting, onSubmit } = useAccountDetail("edit");
 
   return (
     <>
@@ -17,6 +17,7 @@ const AccountDetailPage = () => {
         <AccountForm
           initialValues={item}
           isSubmitting={isSubmitting}
+          mode="edit"
           onSubmit={onSubmit}
         />
       )}

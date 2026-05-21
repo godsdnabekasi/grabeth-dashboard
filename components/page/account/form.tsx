@@ -34,6 +34,7 @@ type Props = {
   isSubmitting?: boolean;
   submitLabel?: string;
   initialValues?: Partial<AccountFormValues>;
+  mode?: "create" | "edit";
 };
 
 const AccountForm = ({
@@ -41,6 +42,7 @@ const AccountForm = ({
   isSubmitting = false,
   submitLabel = "Save",
   initialValues,
+  mode,
 }: Props) => {
   const router = useRouter();
   const [openLocationModal, setOpenLocationModal] = useState(false);
@@ -110,6 +112,23 @@ const AccountForm = ({
         icon={Info}
       >
         <Card contentClassName="grid grid-cols-2 gap-6">
+          <Input
+            label="Email"
+            placeholder="Enter email"
+            name="contact.email"
+            control={control}
+            disabled={mode === "edit"}
+            containerClassName={mode === "edit" ? "col-span-2" : ""}
+          />
+          {mode === "create" && (
+            <Input
+              label="Password"
+              placeholder="Enter password"
+              name="contact.password"
+              control={control}
+              password
+            />
+          )}
           <InputImage
             label="Photo"
             name="photo"
@@ -134,18 +153,10 @@ const AccountForm = ({
             />
           </div>
           <Input
-            label="Email"
-            placeholder="Enter email"
-            name="contact.email"
-            control={control}
-            disabled
-          />
-          <Input
             label="NIJ"
             placeholder="Enter NIJ"
             name="nij"
             {...commonProps}
-            disabled
           />
           <Input
             label="Phone Number"
@@ -221,11 +232,14 @@ const AccountForm = ({
         )}
       </FormSection>
 
-      <Separator />
-
-      <ActivitiesSection
-        id={initialValues?.id ? String(initialValues.id) : ""}
-      />
+      {mode === "edit" && (
+        <>
+          <Separator />
+          <ActivitiesSection
+            id={initialValues?.id ? String(initialValues.id) : ""}
+          />
+        </>
+      )}
 
       <CardFooter className="justify-between">
         <Button variant="outline" onClick={() => router.back()}>

@@ -78,22 +78,42 @@ export const getUsersByChurchId = async (
 
   const response = data?.map((d) => ({
     ...d,
-    phoneNumber: d?.user_contact?.find((item) => item.contact?.type === "phone")
-      ?.contact?.value,
-    email: d?.user_contact?.find(
-      (item) => item.contact?.type === "gmail" || item.contact?.type === "email"
-    )?.contact?.value,
+    contact: {
+      phoneNumber: d?.user_contact?.find(
+        (item) => item.contact?.type === "phone"
+      )?.contact?.value,
+      phoneId: d?.user_contact?.find((item) => item.contact?.type === "phone")
+        ?.contact_id,
+      email: d?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact?.value,
+      emailId: d?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact_id,
+    },
   })) as IUserTransform[];
 
   return { data: response, error, count };
 };
 
 //* CREATE
+export const createUser = async (payload: IPayloadUser) => {
+  const { data, error } = await supabaseClient
+    .from("user")
+    .insert(payload)
+    .select("*")
+    .single<IUser>();
+
+  return { data, error };
+};
+
 export const upsertUser = async (payload: IPayloadUser) => {
   const { data, error } = await supabaseClient
     .from("user")
     .upsert(payload)
-    .select()
+    .select("*")
     .single<IUser>();
 
   return { data, error };

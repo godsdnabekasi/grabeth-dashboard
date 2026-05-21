@@ -10,12 +10,21 @@ import {
 } from "@/types/location";
 
 //* LOCATION
-export const upsertLocation = async (payload: IPayloadLocation[]) => {
-  const { data, error } = await supabaseClient
+export const upsertLocation = async (payload: IPayloadLocation) => {
+  const query = supabaseClient.from("location").upsert(payload).select("*");
+
+  const { data, error } = await query.single<ILocation>();
+
+  return { data, error };
+};
+
+export const upsertLocations = async (payload: IPayloadLocation[]) => {
+  const query = supabaseClient
     .from("location")
-    .upsert(payload)
-    .select("*")
-    .returns<ILocation[]>();
+    .upsert(payload, { defaultToNull: false })
+    .select("*");
+
+  const { data, error } = await query.returns<ILocation[]>();
 
   return { data, error };
 };
