@@ -1,5 +1,7 @@
 import { IUser } from "@/types/user";
 
+export const QUERY_LOCATION = `location(*, district(*), city(*), province(*))`;
+
 export type LocationType =
   | "home"
   | "office"

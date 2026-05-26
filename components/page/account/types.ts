@@ -1,25 +1,8 @@
 import z from "zod";
 
-import { LocationType } from "@/types/location";
+import { LOCATION_TYPE } from "@/config/common";
 
 const REQUIRED_MSG = "Required";
-const LOCATION_TYPE = [
-  "apartment",
-  "building",
-  "home",
-  "hospital",
-  "mall",
-  "office",
-  "open space",
-  "other",
-  "park",
-  "parking area",
-  "playground",
-  "public facility",
-  "residential",
-  "restaurant",
-  "toilet",
-] as LocationType[];
 
 const contactSchema = z.object({
   email: z.string(REQUIRED_MSG).optional(),

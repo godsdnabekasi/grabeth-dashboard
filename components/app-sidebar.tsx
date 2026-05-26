@@ -53,8 +53,8 @@ const data = {
           url: "/cool",
         },
         {
-          title: "Services",
-          url: "#",
+          title: "Church",
+          url: "/church",
         },
       ],
     },

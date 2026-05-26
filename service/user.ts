@@ -1,5 +1,6 @@
 import { supabaseClient } from "@/lib/supabase/client";
 import { IFilterList } from "@/types";
+import { QUERY_LOCATION } from "@/types/location";
 import {
   IPayloadUser,
   IPayloadUserFile,
@@ -15,7 +16,7 @@ const QUERY_USER = `
     user_contact(*, contact(*)),
     church_user(*, church(*)),
     small_group_user(*, small_group(*)),
-    user_location(*, location(*, district(*), city(*), province(*)))
+    user_location(*, ${QUERY_LOCATION})
   `;
 
 export type TGenderOptions = "male" | "female";

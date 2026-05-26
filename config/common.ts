@@ -86,3 +86,21 @@ export const LOCATION_OPTIONS = [
   label: string;
   value: LocationType;
 }[];
+
+export const LOCATION_TYPE = [
+  "apartment",
+  "building",
+  "home",
+  "hospital",
+  "mall",
+  "office",
+  "open space",
+  "other",
+  "park",
+  "parking area",
+  "playground",
+  "public facility",
+  "residential",
+  "restaurant",
+  "toilet",
+] as LocationType[];
