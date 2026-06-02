@@ -2,7 +2,7 @@ import { IFile } from "@/types/file";
 import { ILocation } from "@/types/location";
 import { IUser } from "@/types/user";
 
-export type TChurchUserRole = "admin" | "user" | "finance";
+export type TChurchUserRole = "admin" | "user" | "finance" | "pastor";
 
 export interface IChurch {
   id: number;
@@ -17,13 +17,14 @@ export interface IChurch {
   };
   youtube_channel_url?: string;
   church_location?: IChurchLocation[];
-  // church_user?: IChurchUser[];
+  church_user?: IChurchUser & { count: number }[];
 }
 
 export interface IPayloadChurch extends Omit<IChurch, "id" | "church_file"> {
   id?: number;
 }
 
+//* USER
 export interface IChurchUser {
   church_id: number;
   user_id: string;
@@ -31,6 +32,8 @@ export interface IChurchUser {
   role: TChurchUserRole;
   created_at?: Date;
 }
+
+export type IPayloadChurchUser = Omit<IChurchUser, "user">;
 
 //* LOCATION
 export interface IChurchLocation {

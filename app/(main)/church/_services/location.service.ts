@@ -30,8 +30,6 @@ export const submitLocation = async (
       ]);
       if (locationError) throw locationError;
     }
-
-    toast.success("Location updated successfully");
   } catch {
     toast.error("Failed to update location");
   }

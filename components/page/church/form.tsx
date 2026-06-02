@@ -11,7 +11,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import DeleteSection from "@/components/page/church/delete";
 import ChurchLocationCardList from "@/components/page/church/location/card";
 import ChurchLocationModal from "@/components/page/church/location/location-modal";
-import ChurchMemberContainer from "@/components/page/church/member/container";
+import ChurchMemberContainer, {
+  ISelectedMember,
+} from "@/components/page/church/member/container";
+import ChurchPastoral from "@/components/page/church/member/pastoral";
 import {
   ChurchFormValues,
   ChurchLocationFormValues,
@@ -31,6 +34,8 @@ type Props = {
   submitLabel?: string;
   initialValues?: Partial<ChurchFormValues>;
   onDelete?: () => void;
+  onAddMember?: (members: ISelectedMember[]) => void;
+  onRemoveMember?: (ids: string[]) => void;
   onSubmit: (values: ChurchFormValues) => void;
 };
 
@@ -39,6 +44,8 @@ const ChurchForm = ({
   submitLabel = "Save",
   initialValues,
   onDelete,
+  onAddMember,
+  onRemoveMember,
   onSubmit,
 }: Props) => {
   const router = useRouter();
@@ -128,7 +135,14 @@ const ChurchForm = ({
 
       <Separator />
 
-      <ChurchMemberContainer />
+      <ChurchPastoral onAddPastor={onAddMember} />
+
+      <Separator />
+
+      <ChurchMemberContainer
+        onAddMember={onAddMember}
+        onRemoveMember={onRemoveMember}
+      />
 
       <Separator />
 

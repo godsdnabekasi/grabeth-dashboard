@@ -10,7 +10,7 @@ const EmptySection = ({
   className,
 }: IEmptySectionProps) => {
   return (
-    <div className={`flex items-center justify-center h-full ${className}`}>
+    <div className={`flex items-center justify-center min-h-24 ${className}`}>
       <span className="flex items-center gap-2">
         {Icon && <Icon className="size-4 text-muted-foreground" />}
         <p className="text-sm text-muted-foreground">{message}</p>

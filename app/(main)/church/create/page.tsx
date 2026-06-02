@@ -5,12 +5,18 @@ import AccountForm from "@/components/page/church/form";
 import PageHeader from "@/components/ui/page-header";
 
 const ChurchCreatePage = () => {
-  const { isSubmitting, onSubmit } = useChurchDetail("create");
+  const { isSubmitting, setNewMember, setDeletedMember, onSubmit } =
+    useChurchDetail("create");
 
   return (
     <>
       <PageHeader title="Account Details" />
-      <AccountForm isSubmitting={isSubmitting} onSubmit={onSubmit} />
+      <AccountForm
+        isSubmitting={isSubmitting}
+        onAddMember={setNewMember}
+        onRemoveMember={setDeletedMember}
+        onSubmit={onSubmit}
+      />
     </>
   );
 };

@@ -99,6 +99,57 @@ export const getUsersByChurchId = async (
   return { data: response, error, count };
 };
 
+export const getUsersNotChurched = async (
+  filter?: IFilterList & { excludeId?: string[] }
+) => {
+  const query = supabaseClient
+    .from("user")
+    .select(QUERY_USER, { count: "exact" })
+    .is("church_user", null);
+
+  if (filter?.excludeId && filter.excludeId.length > 0) {
+    query.notIn("id", filter.excludeId);
+  }
+
+  if (filter) {
+    const { search, page, pageSize } = filter;
+    if (search) {
+      query.ilike("name", `%${search}%`);
+    }
+
+    if (page && pageSize) {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query.range(from, to);
+    }
+  }
+
+  const { data, error, count } = await query
+    .returns<IUser[]>()
+    .order("created_at", { ascending: false });
+
+  const response = data?.map((d) => ({
+    ...d,
+    contact: {
+      phoneNumber: d?.user_contact?.find(
+        (item) => item.contact?.type === "phone"
+      )?.contact?.value,
+      phoneId: d?.user_contact?.find((item) => item.contact?.type === "phone")
+        ?.contact_id,
+      email: d?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact?.value,
+      emailId: d?.user_contact?.find(
+        (item) =>
+          item.contact?.type === "gmail" || item.contact?.type === "email"
+      )?.contact_id,
+    },
+  })) as IUserTransform[];
+
+  return { data: response, error, count };
+};
+
 //* CREATE
 export const createUser = async (payload: IPayloadUser) => {
   const { data, error } = await supabaseClient

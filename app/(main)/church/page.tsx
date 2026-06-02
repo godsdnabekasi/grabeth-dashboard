@@ -10,6 +10,7 @@ import { useSnapshot } from "valtio";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable, IPaginationProps } from "@/components/ui/data-table";
@@ -25,6 +26,7 @@ export interface IDataTable {
   name: string;
   photo?: string;
   establish_date?: string;
+  member_total?: number;
 }
 
 export const parentColumns: ColumnDef<IDataTable>[] = [
@@ -72,6 +74,13 @@ export const parentColumns: ColumnDef<IDataTable>[] = [
     header: "Established Date",
   },
   {
+    accessorKey: "member_total",
+    header: "Member Total",
+    cell: ({ row }) => {
+      return <Badge>{row.original.member_total || 0} Members</Badge>;
+    },
+  },
+  {
     accessorKey: "action",
     header: "",
     cell: () => {
@@ -103,6 +112,7 @@ const ChurchPage = () => {
       establish_date: d.establish_date
         ? formatDate(String(d.establish_date))
         : "-",
+      member_total: d.church_user?.[0].count || 0,
     }));
 
   const fetchItems = useCallback(async () => {
