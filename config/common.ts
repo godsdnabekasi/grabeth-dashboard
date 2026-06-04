@@ -1,4 +1,5 @@
 import { SelectOption } from "@/components/ui/select-container";
+import { TChurchUserRole } from "@/types/church";
 import { LocationType } from "@/types/location";
 import { SmallGroupRole } from "@/types/small-group";
 
@@ -58,6 +59,36 @@ export const SMALL_GROUP_ROLES: Record<
     description:
       "The grower is a member of the small group who has shown potential for spiritual growth and development.",
     color: "#84CC16",
+  },
+};
+
+export const CHURCH_USER_ROLES: Record<
+  TChurchUserRole,
+  { label: string; description?: string; color: string }
+> = {
+  pastor: {
+    label: "Pastor",
+    description:
+      "The pastor is responsible for the spiritual leadership and pastoral care of the small group.",
+    color: "#2563EB",
+  },
+  admin: {
+    label: "Admin",
+    description:
+      "The admin is responsible for the overall management and administration of the church.",
+    color: "#10B981",
+  },
+  finance: {
+    label: "Finance",
+    description:
+      "The finance person is responsible for the financial management and administration of the church.",
+    color: "#10B981",
+  },
+  user: {
+    label: "User",
+    description:
+      "The user is a member of the church and is responsible for the spiritual growth and development of small group.",
+    color: "#6B7280",
   },
 };
 

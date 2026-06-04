@@ -1,38 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { CirclePlus, Pencil, Users } from "lucide-react";
+import { CirclePlus, Users } from "lucide-react";
 
 import { ColumnDef } from "@tanstack/react-table";
 
 import { useMemberDetail } from "@/app/(main)/church/_hooks/use-member-detail";
+import MemberSettingModal from "@/components/page/church/member/member-setting-modal";
 import ChurchModalAddMember from "@/components/page/church/member/modal-add-member";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/ui/data-table";
 import FormSection from "@/components/ui/form/section";
+import { CHURCH_USER_ROLES } from "@/config/common";
 import { formatDate } from "@/lib/utils";
+import { TChurchUserRole } from "@/types/church";
 
 interface IChurchMemberContainerProps {
   onAddMember?: (members: ISelectedMember[]) => void;
   onRemoveMember?: (memberIds: string[]) => void;
+  onChangeRole?: (member: ISelectedMember) => void;
 }
 
 export interface IChurchMemberContainer {
   id: string;
   name: string;
   photo?: string;
-  role: string;
+  role: TChurchUserRole;
   joined_date: string;
 }
 
 export interface ISelectedMember extends IChurchMemberContainer {
   selected?: boolean;
+  newRole?: TChurchUserRole;
 }
 
 const ChurchMemberContainer = ({
   onAddMember,
   onRemoveMember,
+  onChangeRole,
 }: IChurchMemberContainerProps) => {
   const {
     members,
@@ -46,6 +53,8 @@ const ChurchMemberContainer = ({
   const [openModalAddMember, setOpenModalAddMember] = useState(false);
   const [newMembers, setNewMembers] = useState<ISelectedMember[]>([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [openSettingModal, setOpenSettingModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<ISelectedMember>();
 
   const columns: ColumnDef<ISelectedMember>[] = [
     {
@@ -91,20 +100,23 @@ const ChurchMemberContainer = ({
     {
       accessorKey: "role",
       header: "Role",
+      cell: ({ row }) => (
+        <Badge
+          className="capitalize font-semibold"
+          style={{
+            backgroundColor:
+              CHURCH_USER_ROLES[row.original.newRole || row.original.role]
+                .color,
+          }}
+        >
+          {CHURCH_USER_ROLES[row.original.newRole || row.original.role].label}
+        </Badge>
+      ),
     },
     {
       accessorKey: "joined_date",
       header: "Joined Date",
       cell: ({ row }) => <p>{formatDate(row.original.joined_date)}</p>,
-    },
-    {
-      accessorKey: "actions",
-      header: "Actions",
-      cell: () => (
-        <Button variant="outline" size="icon-sm">
-          <Pencil className="size-4" />
-        </Button>
-      ),
     },
   ];
 
@@ -114,8 +126,6 @@ const ChurchMemberContainer = ({
       const filteredMembers = members.filter(
         (member) => !val.some((u) => u.id === member.id)
       );
-      console.log(filteredMembers);
-
       setNewMembers(filteredMembers);
     },
     [onRemoveMember, members]
@@ -130,7 +140,7 @@ const ChurchMemberContainer = ({
         joined_date: formatDate(new Date()),
         role: "user",
       })) as ISelectedMember[];
-      setNewMembers((prev) => [...newMember, ...prev, ...members]);
+      setNewMembers((prev) => [...newMember, ...prev]);
       setSelectedMemberIds((prev) => [
         ...prev,
         ...selectedMembers.map((m) => m.id!),
@@ -138,8 +148,25 @@ const ChurchMemberContainer = ({
       onAddMember?.([...newMember, ...newMembers]);
       setOpenModalAddMember(false);
     },
-    [members, newMembers, onAddMember]
+    [newMembers, onAddMember]
   );
+
+  const handleRowClick = (row: IChurchMemberContainer) => {
+    setSelectedMember(row);
+    setOpenSettingModal(true);
+  };
+
+  const handleSaveChangedMember = (value: ISelectedMember) => {
+    const updatedMembers = newMembers.map((member) => {
+      if (member.id === value.id) {
+        return value;
+      }
+      return member;
+    });
+    setNewMembers(updatedMembers);
+    onChangeRole?.(value);
+    setOpenSettingModal(false);
+  };
 
   useEffect(() => {
     setNewMembers(members);
@@ -168,12 +195,36 @@ const ChurchMemberContainer = ({
           totalCount={totalCount + selectedMemberIds.length}
           showPagination
           emptyMessage="No member found."
-          // onRowClick={handleRowClick}
+          onRowClick={handleRowClick}
           onDeleteRow={onDelete}
           onSearch={setSearch}
           onPaginationChange={handlePaginationChange}
         />
       </FormSection>
+
+      {openSettingModal && (
+        <MemberSettingModal
+          isShowModal={openSettingModal}
+          member={selectedMember}
+          roles={CHURCH_USER_ROLES}
+          title="Member Settings"
+          removeLabel="Remove from Church"
+          removeDescription="They will lose access to all shared resources."
+          setIsShowModal={setOpenSettingModal}
+          onSave={handleSaveChangedMember}
+          onRemove={(id) => {
+            onDelete([
+              {
+                id: id,
+                name: "",
+                role: "user",
+                joined_date: "",
+              },
+            ]);
+            setOpenSettingModal(false);
+          }}
+        />
+      )}
 
       {openModalAddMember && (
         <ChurchModalAddMember

@@ -24,7 +24,7 @@ const ChurchMemberItem = memo(
         name: member.name,
         photo: member.user_file?.file?.link,
         joined_date: formatDate(new Date()),
-        role: "mvp",
+        role: "user",
         selected: newSelected,
       });
     }, [

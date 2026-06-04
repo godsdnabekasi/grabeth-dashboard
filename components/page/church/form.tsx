@@ -34,7 +34,6 @@ type Props = {
   submitLabel?: string;
   initialValues?: Partial<ChurchFormValues>;
   onDelete?: () => void;
-  onAddMember?: (members: ISelectedMember[]) => void;
   onRemoveMember?: (ids: string[]) => void;
   onSubmit: (values: ChurchFormValues) => void;
 };
@@ -44,7 +43,6 @@ const ChurchForm = ({
   submitLabel = "Save",
   initialValues,
   onDelete,
-  onAddMember,
   onRemoveMember,
   onSubmit,
 }: Props) => {
@@ -69,6 +67,39 @@ const ChurchForm = ({
       setValue("location", location);
     },
     [setValue]
+  );
+
+  const onAdd = useCallback(
+    (member: ISelectedMember[]) => {
+      const currentPastors = getValues("members");
+      const newPastors = [...(currentPastors || []), ...member];
+      setValue("members", newPastors);
+    },
+    [getValues, setValue]
+  );
+
+  const onRemove = useCallback(
+    (member: string[]) => {
+      const currentPastors = getValues("members");
+      const newPastors = currentPastors?.filter((p) => !member.includes(p.id));
+      setValue("members", newPastors);
+      onRemoveMember?.(member);
+    },
+    [getValues, setValue, onRemoveMember]
+  );
+
+  const onChangeRole = useCallback(
+    (member: ISelectedMember) => {
+      const currentPastor = getValues("members");
+      const newPastor = currentPastor?.map((p) => {
+        if (p.id === member.id) {
+          return member;
+        }
+        return p;
+      }) || [member];
+      setValue("members", newPastor);
+    },
+    [getValues, setValue]
   );
 
   return (
@@ -135,13 +166,18 @@ const ChurchForm = ({
 
       <Separator />
 
-      <ChurchPastoral onAddPastor={onAddMember} />
+      <ChurchPastoral
+        onAddPastor={onAdd}
+        onChangeRole={onChangeRole}
+        onRemovePastor={onRemove}
+      />
 
       <Separator />
 
       <ChurchMemberContainer
-        onAddMember={onAddMember}
-        onRemoveMember={onRemoveMember}
+        onAddMember={onAdd}
+        onChangeRole={onChangeRole}
+        onRemoveMember={onRemove}
       />
 
       <Separator />

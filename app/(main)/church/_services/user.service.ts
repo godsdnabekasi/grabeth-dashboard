@@ -6,7 +6,6 @@ import {
   getChurchUsers,
   upsertChurchUsers,
 } from "@/service/church";
-import { TChurchUserRole } from "@/types/church";
 
 const fetchChurchUsers = async (churchId: number) => {
   try {
@@ -29,7 +28,7 @@ const onAddMemberChurch = async (
     const { error } = await upsertChurchUsers(
       members.map((m) => ({
         church_id: church_id,
-        role: m.role as TChurchUserRole,
+        role: m.newRole || m.role,
         user_id: m.id,
       }))
     );

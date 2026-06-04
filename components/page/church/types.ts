@@ -1,6 +1,14 @@
 import z from "zod";
 
 import { LOCATION_TYPE } from "@/config/common";
+import { TChurchUserRole } from "@/types/church";
+
+const CHURCH_USER_ROLE_TYPE = [
+  "pastor",
+  "admin",
+  "finance",
+  "user",
+] as TChurchUserRole[];
 
 const REQUIRED_MSG = "Required";
 
@@ -25,6 +33,17 @@ export const locationSchema = z.object({
 });
 export type ChurchLocationFormValues = z.infer<typeof locationSchema>;
 
+export const memberSchema = z.object({
+  id: z.string(REQUIRED_MSG),
+  name: z.string(REQUIRED_MSG),
+  photo: z.string().optional(),
+  joined_date: z.string(REQUIRED_MSG),
+  role: z.enum(CHURCH_USER_ROLE_TYPE, { error: REQUIRED_MSG }),
+  newRole: z.enum(CHURCH_USER_ROLE_TYPE, { error: REQUIRED_MSG }).optional(),
+  selected: z.boolean().optional(),
+});
+export type MemberFormValues = z.infer<typeof memberSchema>;
+
 export const churchSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
@@ -45,6 +64,7 @@ export const churchSchema = z.object({
       }
     }),
   location: locationSchema.optional(),
+  members: memberSchema.array().optional(),
 });
 
 export type ChurchFormValues = z.infer<typeof churchSchema>;

@@ -11,7 +11,6 @@ import {
   onAddMemberChurch,
   onRemoveMemberChurch,
 } from "@/app/(main)/church/_services/user.service";
-import { ISelectedMember } from "@/components/page/church/member/container";
 import { ChurchFormValues } from "@/components/page/church/types";
 import { deleteChurchs, getChurchById, upsertChurch } from "@/service/church";
 import { LocationType } from "@/types/location";
@@ -22,7 +21,6 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
   const churchId = Number(params.id);
 
   const [item, setItem] = useState<ChurchFormValues>();
-  const [newMember, setNewMember] = useState<ISelectedMember[]>([]);
   const [deletedMember, setDeletedMember] = useState<string[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,9 +77,12 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
 
   const onSubmit = useCallback(
     async (formData: ChurchFormValues) => {
+      console.log(formData);
+      console.log(deletedMember);
+
       try {
         setIsSubmitting(true);
-        const { photo, file_id, location, ...restFormData } = formData;
+        const { photo, file_id, location, members, ...restFormData } = formData;
         const { data, error } = await upsertChurch({
           ...restFormData,
           establish_date: restFormData.establish_date
@@ -129,9 +130,10 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
           await onRemoveMemberChurch(deletedMember);
         }
 
-        if (newMember?.length) {
-          await onAddMemberChurch(church_id, newMember);
+        if (members?.length) {
+          await onAddMemberChurch(church_id, members);
         }
+
         toast.success(
           `Church ${mode === "create" ? "created" : "updated"} successfully`
         );
@@ -146,15 +148,7 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
         setIsSubmitting(false);
       }
     },
-    [
-      churchId,
-      deletedMember,
-      fetchItem,
-      item?.location?.id,
-      mode,
-      newMember,
-      router,
-    ]
+    [churchId, deletedMember, fetchItem, item?.location?.id, mode, router]
   );
 
   const handleDelete = async () => {
@@ -182,7 +176,6 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
     isSubmitting,
 
     setDeletedMember,
-    setNewMember,
 
     onSubmit,
     handleDelete,
