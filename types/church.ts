@@ -18,6 +18,7 @@ export interface IChurch {
   youtube_channel_url?: string;
   church_location?: IChurchLocation[];
   church_user?: IChurchUser & { count: number }[];
+  church_service?: IChurchService[];
 }
 
 export interface IPayloadChurch extends Omit<IChurch, "id" | "church_file"> {
@@ -53,3 +54,19 @@ export interface IChurchFile {
 }
 
 export type IPayloadChurchFile = Omit<IChurchFile, "file">;
+
+//* SERVICE
+export interface IChurchService {
+  id: number;
+  church_id: number;
+  name: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  open_time: string;
+  location_id?: number;
+  location?: ILocation;
+  created_at?: Date;
+}
+
+export type IPayloadChurchService = Omit<IChurchService, "id" | "location">;

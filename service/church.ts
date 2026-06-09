@@ -4,10 +4,12 @@ import {
   IChurch,
   IChurchFile,
   IChurchLocation,
+  IChurchService,
   IChurchUser,
   IPayloadChurch,
   IPayloadChurchFile,
   IPayloadChurchLocation,
+  IPayloadChurchService,
   IPayloadChurchUser,
   TChurchUserRole,
 } from "@/types/church";
@@ -44,7 +46,8 @@ export const getChurchById = async (id: number) => {
   const query = supabaseClient.from("church").select(`
         *,
         church_file(file(link)),
-        church_location(*, ${QUERY_LOCATION})
+        church_location(*, ${QUERY_LOCATION}),
+        church_service(*, ${QUERY_LOCATION})
       `);
 
   const { data, error } = await query.eq("id", id).single<IChurch>();
@@ -161,5 +164,42 @@ export const deleteChurchUsers = async (user_id: string[]) => {
     .in("user_id", user_id);
 
   const { error } = await query.returns<IChurchUser[]>();
+  return { error };
+};
+
+//* SERVICE
+export const getChurchServices = async (church_id: number) => {
+  const query = supabaseClient
+    .from("church_service")
+    .select(`*, ${QUERY_LOCATION}`, {
+      count: "exact",
+    });
+
+  const { data, error, count } = await query
+    .eq("church_id", church_id)
+    .order("created_at", { ascending: false })
+    .returns<IChurchService[]>();
+
+  return { data, error, count };
+};
+
+export const upsertChurchServices = async (
+  payload: IPayloadChurchService[]
+) => {
+  const query = supabaseClient
+    .from("church_service")
+    .upsert(payload)
+    .select(`*`);
+
+  const { data, error } = await query.returns<IChurchService[]>();
+
+  return { data, error };
+};
+
+export const deleteChurchServices = async (ids: number[]) => {
+  const query = supabaseClient.from("church_service").delete().in("id", ids);
+
+  const { error } = await query.returns<IChurchService[]>();
+
   return { error };
 };

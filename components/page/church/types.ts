@@ -44,6 +44,25 @@ export const memberSchema = z.object({
 });
 export type MemberFormValues = z.infer<typeof memberSchema>;
 
+export const serviceSchema = z.object({
+  id: z.number().optional(),
+  church_id: z.number().optional(),
+  name: z.string(REQUIRED_MSG),
+  description: z.string(REQUIRED_MSG).optional(),
+  start_time: z.string(REQUIRED_MSG),
+  end_time: z.string(REQUIRED_MSG),
+  open_time: z.string(REQUIRED_MSG),
+  location: z
+    .object({
+      id: z.number().optional(),
+      name: z.string(REQUIRED_MSG),
+      address: z.string(REQUIRED_MSG).optional(),
+    })
+    .optional(),
+});
+
+export type ServiceFormValues = z.infer<typeof serviceSchema>;
+
 export const churchSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
@@ -65,6 +84,7 @@ export const churchSchema = z.object({
     }),
   location: locationSchema.optional(),
   members: memberSchema.array().optional(),
+  services: serviceSchema.array().optional(),
 });
 
 export type ChurchFormValues = z.infer<typeof churchSchema>;

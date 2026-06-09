@@ -14,6 +14,15 @@ export function formatTime(date: string | Date, format = "HH:mm") {
   return moment(date).format(format);
 }
 
+export const formatTimeString = (time: string) => {
+  const [hours, minutes] = time.split(":");
+  const hoursInt = parseInt(hours);
+  const minutesInt = parseInt(minutes);
+  const hours24 = hoursInt % 24;
+  const minutes24 = minutesInt < 10 ? `0${minutesInt}` : minutesInt;
+  return `${String(hours24).padStart(2, "0")}:${minutes24}`;
+};
+
 export function formatDateTime(
   date: string,
   dateFormat = "DD MMM YYYY",

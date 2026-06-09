@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import { submitPhoto } from "../_services/photo.service";
 import { submitLocation } from "@/app/(main)/church/_services/location.service";
 import {
+  createUpdateChurchServices,
+  removeChurchServices,
+} from "@/app/(main)/church/_services/service.service";
+import {
   onAddMemberChurch,
   onRemoveMemberChurch,
 } from "@/app/(main)/church/_services/user.service";
 import { ChurchFormValues } from "@/components/page/church/types";
+import { formatTimeString } from "@/lib/utils";
 import { deleteChurchs, getChurchById, upsertChurch } from "@/service/church";
 import { LocationType } from "@/types/location";
 
@@ -43,6 +48,18 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
             ? new Date(data.establish_date)
             : null,
           photo: data.church_file?.file?.link || undefined,
+          services: data.church_service?.map((cs) => ({
+            ...cs,
+            description: cs.description || "",
+            start_time: cs.start_time ? formatTimeString(cs.start_time) : "",
+            end_time: cs.end_time ? formatTimeString(cs.end_time) : "",
+            open_time: cs.open_time ? formatTimeString(cs.open_time) : "",
+            location: {
+              name: cs.location?.name || "",
+              address: cs.location?.address || "",
+              id: cs.location?.id || undefined,
+            },
+          })),
           location: data.church_location?.[0] && {
             id: data.church_location?.[0].location_id,
             name: data.church_location?.[0].location?.name || "",
@@ -77,12 +94,10 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
 
   const onSubmit = useCallback(
     async (formData: ChurchFormValues) => {
-      console.log(formData);
-      console.log(deletedMember);
-
       try {
         setIsSubmitting(true);
-        const { photo, file_id, location, members, ...restFormData } = formData;
+        const { photo, file_id, location, members, services, ...restFormData } =
+          formData;
         const { data, error } = await upsertChurch({
           ...restFormData,
           establish_date: restFormData.establish_date
@@ -134,6 +149,23 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
           await onAddMemberChurch(church_id, members);
         }
 
+        //* SERVICES
+        const newServices = services?.filter((s) => !s.id);
+        const updatedServices = services?.filter((s) => s.id);
+        const deletedServices = item?.services
+          ?.filter((s) => !services?.some((service) => service.id === s.id))
+          .map((s) => s.id!);
+
+        if (newServices?.length) {
+          await createUpdateChurchServices(churchId, newServices);
+        }
+        if (updatedServices?.length) {
+          await createUpdateChurchServices(churchId, updatedServices);
+        }
+        if (deletedServices?.length) {
+          await removeChurchServices(deletedServices);
+        }
+
         toast.success(
           `Church ${mode === "create" ? "created" : "updated"} successfully`
         );
@@ -148,7 +180,15 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
         setIsSubmitting(false);
       }
     },
-    [churchId, deletedMember, fetchItem, item?.location?.id, mode, router]
+    [
+      churchId,
+      deletedMember,
+      fetchItem,
+      item?.location?.id,
+      item?.services,
+      mode,
+      router,
+    ]
   );
 
   const handleDelete = async () => {

@@ -15,6 +15,7 @@ import ChurchMemberContainer, {
   ISelectedMember,
 } from "@/components/page/church/member/container";
 import ChurchPastoral from "@/components/page/church/member/pastoral";
+import ChurchServiceContainer from "@/components/page/church/service/container";
 import {
   ChurchFormValues,
   ChurchLocationFormValues,
@@ -28,6 +29,7 @@ import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { InputImage } from "@/components/ui/input-image";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { IChurchService } from "@/types/church";
 
 type Props = {
   isSubmitting?: boolean;
@@ -49,11 +51,14 @@ const ChurchForm = ({
   const router = useRouter();
   const [openLocationModal, setOpenLocationModal] = useState(false);
 
-  const { control, getValues, setValue, handleSubmit } =
+  const { control, getValues, setValue, handleSubmit, watch } =
     useForm<ChurchFormValues>({
       resolver: zodResolver(churchSchema),
       defaultValues: initialValues,
     });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const services = watch("services");
 
   const commonProps = { control, disabled: isSubmitting };
 
@@ -98,6 +103,35 @@ const ChurchForm = ({
         return p;
       }) || [member];
       setValue("members", newPastor);
+    },
+    [getValues, setValue]
+  );
+
+  const onChangeService = useCallback(
+    (service: IChurchService) => {
+      const currentServices = getValues("services");
+      const newService = service.id ? null : service;
+      const newServices = currentServices?.map((s) => {
+        if (s.id === service.id) {
+          return service;
+        }
+        return s;
+      });
+      if (newService) {
+        newServices?.push(newService);
+      }
+
+      setValue("services", newServices);
+    },
+    [getValues, setValue]
+  );
+
+  const onRemoveService = useCallback(
+    (service: IChurchService) => {
+      const currentServices = getValues("services");
+      const newServices = currentServices?.filter((s) => s.id !== service.id);
+
+      setValue("services", newServices);
     },
     [getValues, setValue]
   );
@@ -178,6 +212,14 @@ const ChurchForm = ({
         onAddMember={onAdd}
         onChangeRole={onChangeRole}
         onRemoveMember={onRemove}
+      />
+
+      <Separator />
+
+      <ChurchServiceContainer
+        initialValues={services}
+        onChangeService={onChangeService}
+        onRemoveService={onRemoveService}
       />
 
       <Separator />
