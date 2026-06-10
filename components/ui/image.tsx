@@ -11,7 +11,7 @@ import PlaceholderImage from "@/assets/images/placeholder-no-image.jpg";
 import { cn } from "@/lib/utils";
 
 interface ImageProps extends Omit<NextImageProps, "src"> {
-  src?: string | null;
+  src?: string | null | StaticImageData;
   fallback?: string | StaticImageData;
 }
 

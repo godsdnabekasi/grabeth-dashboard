@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import ChurchBankAcoountContainer from "@/components/page/church/bank-account/container";
 import DeleteSection from "@/components/page/church/delete";
 import ChurchLocationCardList from "@/components/page/church/location/card";
 import ChurchLocationModal from "@/components/page/church/location/location-modal";
@@ -17,6 +18,7 @@ import ChurchMemberContainer, {
 import ChurchPastoral from "@/components/page/church/member/pastoral";
 import ChurchServiceContainer from "@/components/page/church/service/container";
 import {
+  BankAccountFormValues,
   ChurchFormValues,
   ChurchLocationFormValues,
   churchSchema,
@@ -59,6 +61,7 @@ const ChurchForm = ({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const services = watch("services");
+  const bank_accounts = watch("bank_accounts");
 
   const commonProps = { control, disabled: isSubmitting };
 
@@ -132,6 +135,37 @@ const ChurchForm = ({
       const newServices = currentServices?.filter((s) => s.id !== service.id);
 
       setValue("services", newServices);
+    },
+    [getValues, setValue]
+  );
+
+  const onChangeBankAccount = useCallback(
+    (val: BankAccountFormValues) => {
+      const currentBankAccounts = getValues("bank_accounts");
+      const newBankAccount = val.id ? null : val;
+      const newBankAccounts = currentBankAccounts?.map((s) => {
+        if (s.id === val.id) {
+          return val;
+        }
+        return s;
+      });
+      if (newBankAccount) {
+        newBankAccounts?.push(newBankAccount);
+      }
+
+      setValue("bank_accounts", newBankAccounts);
+    },
+    [getValues, setValue]
+  );
+
+  const onRemoveBankAccount = useCallback(
+    (val: BankAccountFormValues) => {
+      const currentBankAccounts = getValues("bank_accounts");
+      const newBankAccounts = currentBankAccounts?.filter(
+        (s) => s.id !== val.id
+      );
+
+      setValue("bank_accounts", newBankAccounts);
     },
     [getValues, setValue]
   );
@@ -220,6 +254,14 @@ const ChurchForm = ({
         initialValues={services}
         onChangeService={onChangeService}
         onRemoveService={onRemoveService}
+      />
+
+      <Separator />
+
+      <ChurchBankAcoountContainer
+        initialValues={bank_accounts}
+        onChange={onChangeBankAccount}
+        onRemove={onRemoveBankAccount}
       />
 
       <Separator />

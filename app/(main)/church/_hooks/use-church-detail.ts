@@ -6,11 +6,9 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { submitPhoto } from "../_services/photo.service";
+import { upsertBankAccount } from "@/app/(main)/church/_services/bankAccount.service";
 import { submitLocation } from "@/app/(main)/church/_services/location.service";
-import {
-  createUpdateChurchServices,
-  removeChurchServices,
-} from "@/app/(main)/church/_services/service.service";
+import { submitChurchServices } from "@/app/(main)/church/_services/service.service";
 import {
   onAddMemberChurch,
   onRemoveMemberChurch,
@@ -60,6 +58,7 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
               id: cs.location?.id || undefined,
             },
           })),
+          bank_accounts: data.church_bank_account,
           location: data.church_location?.[0] && {
             id: data.church_location?.[0].location_id,
             name: data.church_location?.[0].location?.name || "",
@@ -96,8 +95,15 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
     async (formData: ChurchFormValues) => {
       try {
         setIsSubmitting(true);
-        const { photo, file_id, location, members, services, ...restFormData } =
-          formData;
+        const {
+          photo,
+          file_id,
+          location,
+          members,
+          services,
+          bank_accounts,
+          ...restFormData
+        } = formData;
         const { data, error } = await upsertChurch({
           ...restFormData,
           establish_date: restFormData.establish_date
@@ -150,21 +156,14 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
         }
 
         //* SERVICES
-        const newServices = services?.filter((s) => !s.id);
-        const updatedServices = services?.filter((s) => s.id);
-        const deletedServices = item?.services
-          ?.filter((s) => !services?.some((service) => service.id === s.id))
-          .map((s) => s.id!);
+        await submitChurchServices(
+          churchId,
+          services || [],
+          item?.services || []
+        );
 
-        if (newServices?.length) {
-          await createUpdateChurchServices(churchId, newServices);
-        }
-        if (updatedServices?.length) {
-          await createUpdateChurchServices(churchId, updatedServices);
-        }
-        if (deletedServices?.length) {
-          await removeChurchServices(deletedServices);
-        }
+        //* BANK ACCOUNT
+        await upsertBankAccount(bank_accounts || [], item?.bank_accounts || []);
 
         toast.success(
           `Church ${mode === "create" ? "created" : "updated"} successfully`
@@ -184,6 +183,7 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
       churchId,
       deletedMember,
       fetchItem,
+      item?.bank_accounts,
       item?.location?.id,
       item?.services,
       mode,

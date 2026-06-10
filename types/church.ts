@@ -3,6 +3,13 @@ import { ILocation } from "@/types/location";
 import { IUser } from "@/types/user";
 
 export type TChurchUserRole = "admin" | "user" | "finance" | "pastor";
+export type TChurchBankName =
+  | "bca"
+  | "bni"
+  | "bri"
+  | "mandiri"
+  | "cimb"
+  | "permata";
 
 export interface IChurch {
   id: number;
@@ -19,6 +26,7 @@ export interface IChurch {
   church_location?: IChurchLocation[];
   church_user?: IChurchUser & { count: number }[];
   church_service?: IChurchService[];
+  church_bank_account?: IChurchBankAccount[];
 }
 
 export interface IPayloadChurch extends Omit<IChurch, "id" | "church_file"> {
@@ -70,3 +78,16 @@ export interface IChurchService {
 }
 
 export type IPayloadChurchService = Omit<IChurchService, "id" | "location">;
+
+//* BANK ACCOUNT
+
+export interface IChurchBankAccount {
+  id: number;
+  church_id: number;
+  name: string;
+  account_number: number;
+  bank: TChurchBankName;
+  created_at?: string;
+}
+
+export type IPayloadChurchBankAccount = Omit<IChurchBankAccount, "id">;

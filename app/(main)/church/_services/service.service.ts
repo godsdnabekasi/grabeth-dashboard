@@ -5,6 +5,28 @@ import { deleteChurchServices, upsertChurchServices } from "@/service/church";
 import { upsertLocations } from "@/service/location";
 import { IPayloadLocation } from "@/types/location";
 
+export const submitChurchServices = async (
+  churchId: number,
+  payload: ServiceFormValues[],
+  existingData: ServiceFormValues[]
+) => {
+  const newServices = payload?.filter((s) => !s.id);
+  const updatedServices = payload?.filter((s) => s.id);
+  const deletedServices = existingData
+    ?.filter((s) => !payload?.some((service) => service.id === s.id))
+    .map((s) => s.id!);
+
+  if (newServices?.length) {
+    await createUpdateChurchServices(churchId, newServices);
+  }
+  if (updatedServices?.length) {
+    await createUpdateChurchServices(churchId, updatedServices);
+  }
+  if (deletedServices?.length) {
+    await removeChurchServices(deletedServices);
+  }
+};
+
 const createUpdateChurchServices = async (
   churchId: number,
   payload: ServiceFormValues[]
@@ -12,6 +34,7 @@ const createUpdateChurchServices = async (
   try {
     const serviceLocation: IPayloadLocation[] = payload.map((service) => {
       return {
+        id: service.location?.id,
         name: service.location!.name,
         address: service.location!.name,
         type: "building",

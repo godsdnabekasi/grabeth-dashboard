@@ -1,10 +1,11 @@
+import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
-  ServiceFormValues,
-  serviceSchema,
+  BankAccountFormValues,
+  bankAccountSchema,
 } from "@/components/page/church/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,30 +16,35 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { InputTime } from "@/components/ui/input-time";
-import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
+import { BANK_ACCOUNT_SELECT } from "@/config/bank";
 
-interface ChurchServiceModalProps {
-  initialValues?: ServiceFormValues;
+interface ChurchBankAccountModalProps {
+  initialValues?: BankAccountFormValues;
   isShowModal: boolean;
   mode?: "create" | "edit";
   setIsShowModal: (val: boolean) => void;
-  handleSave: (value: ServiceFormValues) => void;
+  handleSave: (value: BankAccountFormValues) => void;
 }
 
-const ChurchServiceModal = ({
+const ChurchBankAccountModal = ({
   initialValues,
   isShowModal,
   mode = "create",
   setIsShowModal,
   handleSave,
-}: ChurchServiceModalProps) => {
-  const { control, handleSubmit } = useForm<ServiceFormValues>({
-    resolver: zodResolver(serviceSchema),
-    defaultValues: initialValues,
+}: ChurchBankAccountModalProps) => {
+  const params = useParams();
+  const churchId = Number(params.id);
+  const { control, handleSubmit } = useForm<BankAccountFormValues>({
+    resolver: zodResolver(bankAccountSchema),
+    defaultValues: initialValues || {
+      name: "",
+      church_id: churchId,
+    },
   });
 
-  const onSubmit = (data: ServiceFormValues) => {
+  const onSubmit = (data: BankAccountFormValues) => {
     handleSave(data);
     setIsShowModal(false);
   };
@@ -47,35 +53,31 @@ const ChurchServiceModal = ({
     <Dialog open={isShowModal} onOpenChange={setIsShowModal}>
       <DialogContent className="max-h-[90vh] md:max-w-xl gap-0 p-0">
         <DialogHeader
-          title={
-            mode === "create" ? "Add Church Service" : "Edit Church Service"
-          }
+          title={mode === "create" ? "Add Bank Account" : "Edit Bank Account"}
           showCloseButton
           className="px-4 py-5 flex-row"
         />
 
         <div className="p-4 grid grid-cols-2 gap-4">
           <Input
-            label="Name"
+            label="Account Name"
             name="name"
             control={control}
-            placeholder="e.g. Sunday Morning Service"
+            placeholder="e.g. GBI Church Name"
           />
-          <Textarea
-            label="Description"
-            name="description"
+          <Select
+            label="Bank"
+            name="bank"
             control={control}
-            placeholder="e.g. This service is for those who want to grow in their faith..."
+            placeholder="e.g. BCA, Mandiri, BNI"
+            options={BANK_ACCOUNT_SELECT}
           />
-          <InputTime label="Start Time" name="start_time" control={control} />
-          <InputTime label="End Time" name="end_time" control={control} />
-          <InputTime label="Open Time" name="open_time" control={control} />
-
           <Input
-            label="Room/Location"
-            name="location.name"
+            label="Account Number"
+            name="account_number"
             control={control}
-            placeholder="e.g. Main Auditorium"
+            placeholder="e.g. 1234567890"
+            type="number"
           />
         </div>
 
@@ -94,4 +96,4 @@ const ChurchServiceModal = ({
   );
 };
 
-export default ChurchServiceModal;
+export default ChurchBankAccountModal;

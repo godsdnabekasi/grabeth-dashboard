@@ -1,64 +1,64 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-import { CirclePlus, Clock, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Users } from "lucide-react";
 
-import ChurchServiceModal from "@/components/page/church/service/modal";
-import { ServiceFormValues } from "@/components/page/church/types";
+import ChurchBankAccountModal from "@/components/page/church/bank-account/modal";
+import { BankAccountFormValues } from "@/components/page/church/types";
 import Alert from "@/components/ui/alert";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import EmptySection from "@/components/ui/empty-section";
 import FormSection from "@/components/ui/form/section";
-import { formatTimeString } from "@/lib/utils";
-import { IChurchService } from "@/types/church";
+import { Image } from "@/components/ui/image";
+import { BANK_ACCOUNT } from "@/config/bank";
 
-interface IChurchServiceContainerProps {
-  initialValues?: ServiceFormValues[];
-  onRemoveService?: (service: IChurchService) => void;
-  onChangeService: (service: IChurchService) => void;
+interface IChurchBankAccountContainerProps {
+  initialValues?: BankAccountFormValues[];
+  onRemove?: (service: BankAccountFormValues) => void;
+  onChange?: (service: BankAccountFormValues) => void;
 }
 
-const ChurchServiceContainer = ({
-  initialValues,
-  onRemoveService,
-  onChangeService,
-}: IChurchServiceContainerProps) => {
-  const [selectedService, setSelectedService] = useState<
-    ServiceFormValues | undefined
-  >(undefined);
+const ChurchBankAcoountContainer = ({
+  initialValues = [],
+  onRemove,
+  onChange,
+}: IChurchBankAccountContainerProps) => {
+  const [selected, setSelected] = useState<BankAccountFormValues | undefined>(
+    undefined
+  );
   const [openModal, setOpenModal] = useState(false);
 
-  const handleEditService = (service: ServiceFormValues) => {
-    setSelectedService(service);
+  const handleEditService = (val: BankAccountFormValues) => {
+    setSelected(val);
     setOpenModal(true);
   };
 
   const handleAddService = () => {
-    setSelectedService(undefined);
+    setSelected(undefined);
     setOpenModal(true);
   };
 
-  const handleSave = (val: ServiceFormValues) => {
-    onChangeService(val as IChurchService);
+  const handleSave = (val: BankAccountFormValues) => {
+    onChange!(val);
     setOpenModal(false);
   };
 
   return (
     <FormSection
-      title="Service Schedule"
-      description="Manage service schedule"
-      icon={Clock}
+      title="Bank Account Information"
+      description="Manage church bank accounts"
+      icon={Users}
       action={
         <Button size="md" onClick={handleAddService}>
-          <CirclePlus />
-          Add Service
+          <Plus />
+          Add Bank Account
         </Button>
       }
     >
       {initialValues?.length === 0 ? (
         <Card>
-          <EmptySection message="No services found" />
+          <EmptySection message="No bank accounts found" />
         </Card>
       ) : (
         <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
@@ -83,14 +83,14 @@ const ChurchServiceContainer = ({
                         <AlertDialogCancel asChild>
                           <Button variant="outline">Cancel</Button>
                         </AlertDialogCancel>
-                        <Button
-                          variant="destructive"
-                          onClick={() =>
-                            onRemoveService!(item as IChurchService)
-                          }
-                        >
-                          Delete
-                        </Button>
+                        <AlertDialogCancel asChild>
+                          <Button
+                            variant="destructive"
+                            onClick={() => onRemove?.(item)}
+                          >
+                            Delete
+                          </Button>
+                        </AlertDialogCancel>
                       </>
                     }
                   />
@@ -106,19 +106,22 @@ const ChurchServiceContainer = ({
             >
               <CardHeader className="p-4 border-b border-b-border">
                 <span className="flex items-center gap-2">
-                  <Clock className="size-4" />
+                  <Image
+                    src={BANK_ACCOUNT[item.bank].image}
+                    alt={BANK_ACCOUNT[item.bank].label}
+                    width={32}
+                    height={32}
+                  />
                   <span className="font-semibold">
-                    {formatTimeString(item.start_time || "")} -{" "}
-                    {formatTimeString(item.end_time || "")}
+                    {BANK_ACCOUNT[item.bank].label}
                   </span>
                 </span>
               </CardHeader>
               <div className="flex-1 flex flex-col p-4 gap-1">
                 <h3 className="font-semibold text-sm">{item.name}</h3>
-                {item.location?.name && (
+                {item.account_number && (
                   <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="size-4" />
-                    {item.location?.name}
+                    {item.account_number}
                   </span>
                 )}
               </div>
@@ -128,16 +131,16 @@ const ChurchServiceContainer = ({
       )}
 
       {openModal && (
-        <ChurchServiceModal
-          initialValues={selectedService}
+        <ChurchBankAccountModal
+          initialValues={selected}
           isShowModal={openModal}
           setIsShowModal={setOpenModal}
           handleSave={handleSave}
-          mode={selectedService ? "edit" : "create"}
+          mode={selected ? "edit" : "create"}
         />
       )}
     </FormSection>
   );
 };
 
-export default ChurchServiceContainer;
+export default ChurchBankAcoountContainer;

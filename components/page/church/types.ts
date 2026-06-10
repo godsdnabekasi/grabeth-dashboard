@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { LOCATION_TYPE } from "@/config/common";
-import { TChurchUserRole } from "@/types/church";
+import { TChurchBankName, TChurchUserRole } from "@/types/church";
 
 const CHURCH_USER_ROLE_TYPE = [
   "pastor",
@@ -9,6 +9,16 @@ const CHURCH_USER_ROLE_TYPE = [
   "finance",
   "user",
 ] as TChurchUserRole[];
+
+const CHURCH_BANK_TYPE = [
+  "bca",
+  "bni",
+  "bri",
+  "mandiri",
+  "cimb",
+  "permata",
+  "danamon",
+] as TChurchBankName[];
 
 const REQUIRED_MSG = "Required";
 
@@ -63,6 +73,16 @@ export const serviceSchema = z.object({
 
 export type ServiceFormValues = z.infer<typeof serviceSchema>;
 
+export const bankAccountSchema = z.object({
+  id: z.number().optional(),
+  church_id: z.number(),
+  name: z.string(REQUIRED_MSG),
+  account_number: z.number(REQUIRED_MSG),
+  bank: z.enum(CHURCH_BANK_TYPE, { error: REQUIRED_MSG }),
+});
+
+export type BankAccountFormValues = z.infer<typeof bankAccountSchema>;
+
 export const churchSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
@@ -85,6 +105,7 @@ export const churchSchema = z.object({
   location: locationSchema.optional(),
   members: memberSchema.array().optional(),
   services: serviceSchema.array().optional(),
+  bank_accounts: bankAccountSchema.array().optional(),
 });
 
 export type ChurchFormValues = z.infer<typeof churchSchema>;

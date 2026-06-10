@@ -2,11 +2,13 @@ import { supabaseClient } from "@/lib/supabase/client";
 import { IFilterList } from "@/types";
 import {
   IChurch,
+  IChurchBankAccount,
   IChurchFile,
   IChurchLocation,
   IChurchService,
   IChurchUser,
   IPayloadChurch,
+  IPayloadChurchBankAccount,
   IPayloadChurchFile,
   IPayloadChurchLocation,
   IPayloadChurchService,
@@ -47,7 +49,8 @@ export const getChurchById = async (id: number) => {
         *,
         church_file(file(link)),
         church_location(*, ${QUERY_LOCATION}),
-        church_service(*, ${QUERY_LOCATION})
+        church_service(*, ${QUERY_LOCATION}),
+        church_bank_account(*)
       `);
 
   const { data, error } = await query.eq("id", id).single<IChurch>();
@@ -200,6 +203,43 @@ export const deleteChurchServices = async (ids: number[]) => {
   const query = supabaseClient.from("church_service").delete().in("id", ids);
 
   const { error } = await query.returns<IChurchService[]>();
+
+  return { error };
+};
+
+//* BANK ACCOUNT
+
+export const getChurchBankAccounts = async (church_id: number) => {
+  const query = supabaseClient.from("church_bank_account").select(`*`);
+
+  const { data, error } = await query
+    .eq("church_id", church_id)
+    .order("created_at", { ascending: false })
+    .returns<IChurchBankAccount[]>();
+
+  return { data, error };
+};
+
+export const upsertChurchBankAccount = async (
+  payload: IPayloadChurchBankAccount[]
+) => {
+  const query = supabaseClient
+    .from("church_bank_account")
+    .upsert(payload)
+    .select(`*`);
+
+  const { data, error } = await query.returns<IChurchBankAccount[]>();
+
+  return { data, error };
+};
+
+export const deleteChurchBankAccounts = async (ids: number[]) => {
+  const query = supabaseClient
+    .from("church_bank_account")
+    .delete()
+    .in("id", ids);
+
+  const { error } = await query.returns<IChurchBankAccount[]>();
 
   return { error };
 };
