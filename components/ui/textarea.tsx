@@ -67,7 +67,7 @@ function TextareaContainer({
 
 interface FormTextareaProps<
   T extends FieldValues,
-> extends React.ComponentProps<"textarea"> {
+> extends TextareaContainerProps {
   name: Path<T>;
   control: Control<T>;
   label?: string;

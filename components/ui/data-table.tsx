@@ -107,9 +107,7 @@ export function DataTable<TData, TValue>({
   const canPrevious = page >= 1;
   const canNext = (page + 1) * pagination.pageSize < totalCount;
   const [searchTerm, setSearchTerm] = useState(
-    searchKey
-      ? (table.getColumn(searchKey)?.getFilterValue() as string)
-      : undefined
+    searchKey ? (table.getColumn(searchKey)?.getFilterValue() as string) : ""
   );
 
   const onDelete = () => {

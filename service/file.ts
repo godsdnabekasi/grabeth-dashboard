@@ -2,6 +2,7 @@ import { supabaseClient } from "@/lib/supabase/client";
 import { IFile, IPayloadFile } from "@/types/file";
 
 export type STORAGE_BUCKET = "images" | "videos";
+export const QUERY_FILE = `file(*)`;
 
 export const uploadFileToStorage = async (payload: {
   bucket: STORAGE_BUCKET;
