@@ -34,6 +34,7 @@ export const SelectComp = memo(function SelectComp<T extends FieldValues>({
   className,
   contentClassName,
   itemClassName,
+  containerClassName,
   onSearch,
   onChange,
   disabled,
@@ -51,6 +52,7 @@ export const SelectComp = memo(function SelectComp<T extends FieldValues>({
   className?: string;
   contentClassName?: string;
   itemClassName?: string;
+  containerClassName?: string;
   onSearch?: (val: string) => void;
   onChange?: (value: string) => void;
   disabled?: boolean;
@@ -76,7 +78,7 @@ export const SelectComp = memo(function SelectComp<T extends FieldValues>({
   );
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", containerClassName)}>
       {label && (
         <Label htmlFor={name}>
           {label}
@@ -143,6 +145,7 @@ export function Select<T extends FieldValues>({
   className,
   contentClassName,
   itemClassName,
+  containerClassName,
   onSearch,
   ...rootProps
 }: {
@@ -157,6 +160,7 @@ export function Select<T extends FieldValues>({
   className?: string;
   contentClassName?: string;
   itemClassName?: string;
+  containerClassName?: string;
   onSearch?: (val: string) => void;
 } & Omit<
   React.ComponentProps<typeof SelectPrimitive.Root>,
@@ -180,6 +184,7 @@ export function Select<T extends FieldValues>({
           className={className}
           contentClassName={contentClassName}
           itemClassName={itemClassName}
+          containerClassName={containerClassName}
           onSearch={onSearch}
           onChange={onChange}
           {...rootProps}

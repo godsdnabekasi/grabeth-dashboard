@@ -57,6 +57,10 @@ const data = {
           url: "/church",
         },
         {
+          title: "Quiz",
+          url: "/quiz",
+        },
+        {
           title: "Service",
           url: "/service",
         },

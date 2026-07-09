@@ -16,10 +16,9 @@ import { Image } from "@/components/ui/image";
 import PageHeader from "@/components/ui/page-header";
 import { useDebounce } from "@/hooks/use-debounce";
 import { formatDate } from "@/lib/utils";
-import { deleteClasses } from "@/service/class";
-import { getForms } from "@/service/form";
+import { deleteQuizes, getQuizes } from "@/service/quiz";
 import userStore from "@/store/user";
-import { IForm } from "@/types/form";
+import { IQuiz } from "@/types/quiz";
 
 export interface IDataTable {
   id: number;
@@ -84,7 +83,7 @@ export const parentColumns: ColumnDef<IDataTable>[] = [
   },
 ];
 
-const ServicePage = () => {
+const QuizPage = () => {
   const router = useRouter();
   const { user } = useSnapshot(userStore);
   const [items, setItems] = useState<IDataTable[]>([]);
@@ -95,7 +94,7 @@ const ServicePage = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
-  const transformItems = (data: IForm[] = []): IDataTable[] =>
+  const transformItems = (data: IQuiz[] = []): IDataTable[] =>
     data.map((d) => ({
       id: d.id,
       name: d.classes.title,
@@ -115,7 +114,7 @@ const ServicePage = () => {
         pageSize,
         church_id: user?.church_user?.church_id || 0,
       };
-      const { data, error, count } = await getForms(
+      const { data, error, count } = await getQuizes(
         debouncedSearch ? { search: debouncedSearch, ...filter } : filter
       );
       if (error) throw error;
@@ -129,7 +128,7 @@ const ServicePage = () => {
     }
   }, [debouncedSearch, page, pageSize, user?.church_user?.church_id]);
 
-  const handleCreate = () => router.push("/service/create");
+  const handleCreate = () => router.push("/quiz/create");
 
   const handlePaginationChange = ({ page, pageSize }: IPaginationProps) => {
     setPageSize(pageSize);
@@ -141,14 +140,14 @@ const ServicePage = () => {
   }, [fetchItems]);
 
   const handleRowClick = (data: IDataTable) => {
-    if (data.id) router.push(`/service/${data.id}`);
+    if (data.id) router.push(`/quiz/${data.id}`);
   };
 
   const onDelete = useCallback(
     async (val: IDataTable[]) => {
       try {
         setIsLoading(true);
-        const { error } = await deleteClasses(val.map((u) => u.id));
+        const { error } = await deleteQuizes(val.map((u) => u.id));
         if (error) throw error;
         toast.success(`Successfully deleted ${val.length} class(es)`);
         await fetchItems();
@@ -164,11 +163,11 @@ const ServicePage = () => {
   return (
     <>
       <PageHeader
-        title="Service"
+        title="Quiz"
         action={
           <Button onClick={handleCreate}>
             <PlusCircle className="size-4" />
-            Add New Service
+            Add New Quiz
           </Button>
         }
       />
@@ -181,7 +180,7 @@ const ServicePage = () => {
         pageSize={pageSize}
         totalCount={totalCount}
         showPagination
-        emptyMessage="No Service found."
+        emptyMessage="No Quiz found."
         onRowClick={handleRowClick}
         onDeleteRow={onDelete}
         onSearch={setSearch}
@@ -191,4 +190,4 @@ const ServicePage = () => {
   );
 };
 
-export default ServicePage;
+export default QuizPage;

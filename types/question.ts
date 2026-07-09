@@ -38,6 +38,20 @@ export interface IQuestion {
   correct_answer?: string | null;
   point?: number | null;
   order: number;
+
+  question_answer: IQuestionAnswer;
 }
 
-export type TPayloadQuestion = Omit<IQuestion, "id">;
+export type TPayloadQuestion = Omit<
+  IQuestion,
+  "id" | "classes" | "question_answer"
+>;
+
+export interface IQuestionAnswer {
+  question_id: number;
+  type: TQuestionType;
+  answer: string;
+  created_at: Date;
+}
+
+export type TPayloadQuestionAnswer = Omit<IQuestionAnswer, "created_at">;

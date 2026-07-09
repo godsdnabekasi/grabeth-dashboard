@@ -6,15 +6,24 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSnapshot } from "valtio";
 
-import { ServiceFormValues } from "@/app/(main)/service/_types/form";
+import { ServiceFormValues } from "@/app/(main)/quiz/_types/form";
 import { formatDate } from "@/lib/utils";
-import { deleteClasses, getClass, upsertClasses } from "@/service/class";
+import { deleteClasses, upsertClasses } from "@/service/class";
 import { uploadImage } from "@/service/file";
-import { upsertForm } from "@/service/form";
-import { deleteQuestion, upsertQuestion } from "@/service/question";
+import {
+  deleteQuestion,
+  upsertQuestion,
+  upsertQuestionAnswer,
+} from "@/service/question";
+import { getQuiz, upsertQuiz } from "@/service/quiz";
+// import { deleteClasses, getClass, upsertClasses } from "@/quiz/class";
+// import { uploadImage } from "@/quiz/file";
+// import { getForm, upsertForm } from "@/quiz/form";
+// import { deleteQuestion, upsertQuestion } from "@/quiz/question";
 import userStore from "@/store/user";
 import { IClasses } from "@/types/class";
 import { TQuestionType } from "@/types/question";
+import { IQuiz } from "@/types/quiz";
 
 interface IProps {
   mode: "edit" | "create";
@@ -32,7 +41,7 @@ async function resolvePhotoFileId(
   photo: ServiceFormValues["photo"],
   churchId: ServiceFormValues["church_id"]
 ) {
-  if (typeof photo === "string") return undefined;
+  if (typeof photo === "string" || !photo) return undefined;
 
   const { data, error } = await uploadImage({
     file: photo,
@@ -48,7 +57,8 @@ function buildQuestionPayloads(
   questions: ServiceFormValues["question"],
   classId: number
 ): QuestionPayload[] {
-  return questions.map((question, index) => ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return questions.map(({ answer, ...question }, index) => ({
     ...question,
     class_id: classId,
     type: question.type as TQuestionType,
@@ -78,13 +88,14 @@ function partitionQuestions(
   return { toUpdate, toInsert, toDelete };
 }
 
-export const useServiceDetail = ({ mode }: IProps) => {
+export const useQuizDetail = ({ mode }: IProps) => {
   const { user } = useSnapshot(userStore);
   const params = useParams();
   const router = useRouter();
   const id = params?.id ? Number(params.id) : null;
   const churchId = user?.church_user?.church_id;
 
+  const [quiz, setQuiz] = useState<IQuiz>();
   const [item, setItem] = useState<Partial<ServiceFormValues>>({});
   const [isFetching, setIsFetching] = useState(id !== null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -94,23 +105,31 @@ export const useServiceDetail = ({ mode }: IProps) => {
 
     setIsFetching(true);
     try {
-      const { data, error } = await getClass(id);
+      const { data, error } = await getQuiz(id);
       if (error) throw error;
       if (!data) return;
 
+      setQuiz(data);
       setItem({
-        ...data,
-        name: data.title,
+        id: data.class_id,
+        name: data.classes.title,
+        description: data.classes.description,
         published_at:
-          data.published_at && new Date(formatDate(data.published_at)),
+          data.classes.published_at &&
+          new Date(formatDate(data.classes.published_at)),
         unpublished_at:
-          data.unpublished_at && new Date(formatDate(data.unpublished_at)),
-        photo: data.file?.link,
-        church_id: String(data.church_id) || String(churchId),
-        question: data.question?.map((q) => ({
+          data.classes.unpublished_at &&
+          new Date(formatDate(data.classes.unpublished_at)),
+        photo: data.classes.file?.link,
+        church_id: String(data.classes.church_id) || String(churchId),
+        question: data.classes.question?.map((q) => ({
           ...q,
+          point: q.point ?? undefined,
           detail: q.detail
-            ? { ...q.detail, options: q.detail.options ?? [] }
+            ? {
+                ...q.detail,
+                options: q.detail.options ?? [],
+              }
             : undefined,
         })),
       });
@@ -123,11 +142,11 @@ export const useServiceDetail = ({ mode }: IProps) => {
 
   const onSubmit = useCallback(
     async (values: ServiceFormValues) => {
+      console.log(values);
+
       try {
         setIsSubmitting(true);
-
         const fileId = await resolvePhotoFileId(values.photo, values.church_id);
-
         const classPayload: Partial<IClasses> = {
           id: values.id,
           title: values.name,
@@ -143,7 +162,8 @@ export const useServiceDetail = ({ mode }: IProps) => {
 
         //* FORM
         if (classData) {
-          const { error: formError } = await upsertForm({
+          const { error: formError } = await upsertQuiz({
+            id: quiz?.id,
             class_id: classData.id,
             is_private: false,
           });
@@ -153,30 +173,50 @@ export const useServiceDetail = ({ mode }: IProps) => {
         //* QUESTIONS
         const questionPayloads = buildQuestionPayloads(
           values.question,
-          Number(values.id)
+          Number(values.id || classData?.id)
         );
         const { toUpdate, toInsert, toDelete } = partitionQuestions(
           questionPayloads,
           item.question
         );
-
         if (toUpdate.length > 0) {
           const { error } = await upsertQuestion(toUpdate);
           if (error) throw error;
+          const { error: errorAnswer } = await upsertQuestionAnswer(
+            toUpdate.map((v) => {
+              return {
+                question_id: v.id!,
+                type: v.type,
+                answer: v.correct_answer ?? "",
+              };
+            })
+          );
+          if (errorAnswer) throw errorAnswer;
         }
         if (toInsert.length > 0) {
-          const { error } = await upsertQuestion(toInsert);
+          const { data, error } = await upsertQuestion(toInsert);
           if (error) throw error;
+          const { error: errorAnswer } = await upsertQuestionAnswer(
+            toInsert.map((v, i) => {
+              return {
+                question_id: data![i].id,
+                type: v.type,
+                answer: v.correct_answer ?? "",
+              };
+            })
+          );
+          if (errorAnswer) throw errorAnswer;
         }
         if (toDelete.length > 0) {
           const { error } = await deleteQuestion(toDelete);
           if (error) throw error;
         }
-
-        toast.success("Service updated successfully");
         if (mode === "create") {
-          router.push("/service");
+          toast.success("Quize created successfully");
+          router.push("/quize");
+          return;
         }
+        toast.success("Quize updated successfully");
         fetchItem();
       } catch {
         toast.error("Oops, something went wrong");
@@ -184,7 +224,7 @@ export const useServiceDetail = ({ mode }: IProps) => {
         setIsSubmitting(false);
       }
     },
-    [churchId, item.question, mode, router, fetchItem]
+    [churchId, item.question, mode, fetchItem, quiz?.id, router]
   );
 
   const onDelete = useCallback(async () => {
