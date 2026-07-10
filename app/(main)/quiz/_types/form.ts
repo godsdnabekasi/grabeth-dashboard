@@ -67,7 +67,7 @@ export const questionSchema = z
 
 export type QuestionFormValues = z.infer<typeof questionSchema>;
 
-export const serviceSchema = z.object({
+export const quizSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
   description: z.string(REQUIRED_MSG).optional(),
@@ -78,4 +78,4 @@ export const serviceSchema = z.object({
   question: questionSchema.array(),
 });
 
-export type ServiceFormValues = z.infer<typeof serviceSchema>;
+export type QuizFormValues = z.infer<typeof quizSchema>;

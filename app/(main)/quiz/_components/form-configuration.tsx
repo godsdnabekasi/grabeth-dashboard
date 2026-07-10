@@ -7,8 +7,8 @@ import { Settings } from "lucide-react";
 import { move } from "@dnd-kit/helpers";
 import { DragDropProvider, DragEndEvent } from "@dnd-kit/react";
 
-import ServiceFormConfigurationModal from "@/app/(main)/quiz/_components/form-configuration-modal";
-import ServiceQuestionCard from "@/app/(main)/quiz/_components/question-card";
+import QuizFormConfigurationModal from "@/app/(main)/quiz/_components/form-configuration-modal";
+import QuizQuestionCard from "@/app/(main)/quiz/_components/question-card";
 import { QuestionFormValues } from "@/app/(main)/quiz/_types/form";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import EmptySection from "@/components/ui/empty-section";
 import FormSection from "@/components/ui/form/section";
 import { cn } from "@/lib/utils";
 
-interface IServiceFormConfigurationProps {
+interface IQuizFormConfigurationProps {
   initialValues?: Partial<QuestionFormValues[]>;
   isError?: boolean;
   onSubmit: (values: QuestionFormValues[]) => void;
@@ -26,7 +26,7 @@ const QuizFormConfiguration = ({
   initialValues,
   isError,
   onSubmit,
-}: IServiceFormConfigurationProps) => {
+}: IQuizFormConfigurationProps) => {
   const [selectedQuestion, setSelectedQuestion] = useState<
     QuestionFormValues & { index: number }
   >();
@@ -36,21 +36,27 @@ const QuizFormConfiguration = ({
   );
 
   const handleQuestionSubmit = (question: QuestionFormValues) => {
-    if (selectedQuestion !== undefined) {
-      setQuestions((prev) => {
-        const newQuestions = prev.map((q, i) =>
-          i === selectedQuestion.index ? question : q
-        );
-        onSubmit(newQuestions);
-        return newQuestions;
-      });
-    } else {
-      setQuestions((prev) => {
-        const newQuestions = [...prev, question];
-        onSubmit(newQuestions);
-        return newQuestions;
-      });
-    }
+    setQuestions((prev) => {
+      const next =
+        selectedQuestion !== undefined
+          ? prev.map((q, i) => (i === selectedQuestion.index ? question : q))
+          : [...prev, question];
+
+      const data = next.map((q) => ({
+        ...q,
+        detail: {
+          ...q.detail,
+          options:
+            q.detail?.options.map((opt) => ({
+              ...opt,
+              value: opt.label?.toLowerCase().trim().replace(/ /g, "_"),
+            })) ?? [],
+        },
+      }));
+
+      onSubmit(data);
+      return data;
+    });
   };
 
   const handleRemoveQuestion = (index: number) => {
@@ -86,7 +92,7 @@ const QuizFormConfiguration = ({
   return (
     <FormSection
       title="Question Configure"
-      description="Configure advanced service options"
+      description="Configure advanced quiz options"
       icon={Settings}
       action={<Button onClick={handleAddQuestion}>Add Question</Button>}
     >
@@ -100,7 +106,7 @@ const QuizFormConfiguration = ({
           ) : (
             <DragDropProvider onDragEnd={handleDragEnd}>
               {questions.map((question, index) => (
-                <ServiceQuestionCard
+                <QuizQuestionCard
                   key={question.id || index}
                   question={question}
                   index={index}
@@ -117,7 +123,7 @@ const QuizFormConfiguration = ({
       </div>
 
       {openQuestionModal && (
-        <ServiceFormConfigurationModal
+        <QuizFormConfigurationModal
           initialValues={selectedQuestion}
           open={openQuestionModal}
           onOpenChange={setOpenQuestionModal}

@@ -11,8 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import QuizFormConfiguration from "@/app/(main)/quiz/_components/form-configuration";
 import {
   QuestionFormValues,
-  ServiceFormValues,
-  serviceSchema,
+  QuizFormValues,
+  quizSchema,
 } from "@/app/(main)/quiz/_types/form";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
@@ -27,12 +27,12 @@ import { Textarea } from "@/components/ui/textarea";
 type Props = {
   isSubmitting?: boolean;
   submitLabel?: string;
-  initialValues?: Partial<ServiceFormValues>;
+  initialValues?: Partial<QuizFormValues>;
   onDelete?: () => void;
-  onSubmit: (values: ServiceFormValues) => void;
+  onSubmit: (values: QuizFormValues) => void;
 };
 
-const ServiceForm = ({
+const QuizForm = ({
   isSubmitting = false,
   submitLabel = "Save",
   initialValues,
@@ -46,8 +46,8 @@ const ServiceForm = ({
     control,
     setValue,
     handleSubmit,
-  } = useForm<ServiceFormValues>({
-    resolver: zodResolver(serviceSchema),
+  } = useForm<QuizFormValues>({
+    resolver: zodResolver(quizSchema),
     defaultValues: initialValues || {
       name: "",
       description: "",
@@ -146,4 +146,4 @@ const ServiceForm = ({
   );
 };
 
-export default ServiceForm;
+export default QuizForm;

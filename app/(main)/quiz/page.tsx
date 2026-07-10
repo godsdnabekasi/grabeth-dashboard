@@ -64,7 +64,7 @@ export const parentColumns: ColumnDef<IDataTable>[] = [
       <span className="flex items-center gap-2">
         <Image
           src={row.original.photo || ""}
-          alt={row.getValue("name") || "Service cover"}
+          alt={row.getValue("name") || "Quiz cover"}
           width={48}
           height={48}
           className="rounded-sm object-cover w-12 h-12"
@@ -149,7 +149,7 @@ const QuizPage = () => {
         setIsLoading(true);
         const { error } = await deleteQuizes(val.map((u) => u.id));
         if (error) throw error;
-        toast.success(`Successfully deleted ${val.length} class(es)`);
+        toast.success(`Successfully deleted ${val.length} quiz`);
         await fetchItems();
       } catch {
         toast.error("Oops, something went wrong");

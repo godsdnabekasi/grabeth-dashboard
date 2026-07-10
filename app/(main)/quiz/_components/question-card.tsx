@@ -1,6 +1,8 @@
 import React from "react";
 
 import {
+  Check,
+  CheckCheck,
   FileText,
   FileVideo,
   GripVertical,
@@ -20,19 +22,19 @@ import { Slider } from "@/components/ui/slider";
 import { QUESTION_DETAIL_TYPE } from "@/config/service";
 import { cn } from "@/lib/utils";
 
-interface IServiceQuestionCardProps {
+interface IQuizQuestionCardProps {
   question: QuestionFormValues;
   index: number;
   onRemove: (index: number) => void;
   onClick: (question: QuestionFormValues) => void;
 }
 
-const ServiceQuestionCard = ({
+const QuizQuestionCard = ({
   question,
   index,
   onRemove,
   onClick,
-}: IServiceQuestionCardProps) => {
+}: IQuizQuestionCardProps) => {
   const { ref, handleRef } = useSortable({
     id: question.id || index,
     index: index,
@@ -97,29 +99,62 @@ const ServiceQuestionCard = ({
       />
       <div className="flex flex-1 flex-col space-y-1">
         <h2 className="font-semibold">{question.title}</h2>
-        <Badge
-          className={cn(
-            questionConfig[question.type as keyof typeof questionConfig].bg,
-            questionConfig[question.type as keyof typeof questionConfig].color
+        <span className="space-x-1">
+          <Badge
+            className={cn(
+              questionConfig[question.type as keyof typeof questionConfig].bg,
+              questionConfig[question.type as keyof typeof questionConfig].color
+            )}
+          >
+            <Icon className="size-4" />
+            {
+              QUESTION_DETAIL_TYPE[
+                question.type as keyof typeof QUESTION_DETAIL_TYPE
+              ].label
+            }
+          </Badge>
+          {question.correct_answer && (
+            <Badge className="bg-emerald-500/20 text-emerald-600">
+              <Check className="size-4 text-emerald-600" />
+              {question.type === "multiple_select"
+                ? `${question.correct_answer.split(",").length} jawaban benar`
+                : `Jawaban: ${question.correct_answer.replace("_", " ")}`}
+            </Badge>
           )}
-        >
-          <Icon className="size-4" />
-          {
-            QUESTION_DETAIL_TYPE[
-              question.type as keyof typeof QUESTION_DETAIL_TYPE
-            ].label
-          }
-        </Badge>
+          {question.point && (
+            <Badge className="bg-sky-500/20 text-sky-600">
+              <CheckCheck className="size-4 text-sky-600" />
+              Poin: {question.point}
+            </Badge>
+          )}
+        </span>
 
         {question.detail && (
           <>
             {question.detail.options?.length > 0 && (
-              <ul className="pl-3 list-decimal space-y-0.5">
-                {question.detail.options.map((option, index) => (
-                  <li key={index} className="text-xs text-muted-foreground">
-                    {option.label}
-                  </li>
-                ))}
+              <ul className="pl-3 list-disc space-y-0.5">
+                {question.detail.options.map((option, index) => {
+                  const isCorrect = question.correct_answer
+                    ?.split(",")
+                    .find((val) => val === option.value);
+
+                  return (
+                    <li
+                      key={index}
+                      className={cn(
+                        "text-xs text-muted-foreground",
+                        isCorrect && "font-semibold text-emerald-600"
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        {option.label}
+                        {isCorrect && (
+                          <Check className="size-3 text-emerald-600" />
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             )}
 
@@ -169,4 +204,4 @@ const ServiceQuestionCard = ({
   );
 };
 
-export default ServiceQuestionCard;
+export default QuizQuestionCard;

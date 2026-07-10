@@ -14,7 +14,7 @@ import { TQuestionType } from "@/types/question";
 type AnswerOption = {
   id?: string;
   label: string;
-  value?: string;
+  value: string;
 };
 
 interface AnswerListProps {
@@ -68,8 +68,8 @@ const AnswerList = ({
                   <FieldTitle>{option.label}</FieldTitle>
                 </FieldContent>
                 <RadioGroupItem
-                  value={option.value ?? `${option.label}-idx-${i}`}
-                  id={option.id ?? option.value ?? option.label}
+                  value={option.value}
+                  id={option.value}
                   defaultChecked={option.value === initialValues}
                   defaultValue={defaultValue}
                 />

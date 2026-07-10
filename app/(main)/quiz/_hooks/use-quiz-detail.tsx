@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useSnapshot } from "valtio";
 
-import { ServiceFormValues } from "@/app/(main)/quiz/_types/form";
+import { QuizFormValues } from "@/app/(main)/quiz/_types/form";
 import { formatDate } from "@/lib/utils";
 import { deleteClasses, upsertClasses } from "@/service/class";
 import { uploadImage } from "@/service/file";
@@ -16,10 +16,6 @@ import {
   upsertQuestionAnswer,
 } from "@/service/question";
 import { getQuiz, upsertQuiz } from "@/service/quiz";
-// import { deleteClasses, getClass, upsertClasses } from "@/quiz/class";
-// import { uploadImage } from "@/quiz/file";
-// import { getForm, upsertForm } from "@/quiz/form";
-// import { deleteQuestion, upsertQuestion } from "@/quiz/question";
 import userStore from "@/store/user";
 import { IClasses } from "@/types/class";
 import { TQuestionType } from "@/types/question";
@@ -29,7 +25,7 @@ interface IProps {
   mode: "edit" | "create";
 }
 
-type QuestionValue = ServiceFormValues["question"][number];
+type QuestionValue = QuizFormValues["question"][number];
 type QuestionPayload = QuestionValue & {
   class_id: number;
   type: TQuestionType;
@@ -38,8 +34,8 @@ type QuestionPayload = QuestionValue & {
 
 /** Uploads a new photo (if one was picked) and returns the resulting file id. */
 async function resolvePhotoFileId(
-  photo: ServiceFormValues["photo"],
-  churchId: ServiceFormValues["church_id"]
+  photo: QuizFormValues["photo"],
+  churchId: QuizFormValues["church_id"]
 ) {
   if (typeof photo === "string" || !photo) return undefined;
 
@@ -54,7 +50,7 @@ async function resolvePhotoFileId(
 
 /** Normalizes form questions into DB-ready payloads (ordering, type, option values). */
 function buildQuestionPayloads(
-  questions: ServiceFormValues["question"],
+  questions: QuizFormValues["question"],
   classId: number
 ): QuestionPayload[] {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -76,7 +72,7 @@ function buildQuestionPayloads(
 /** Splits submitted questions into update / insert groups, and finds removed ones. */
 function partitionQuestions(
   submitted: QuestionPayload[],
-  existing: Partial<ServiceFormValues>["question"]
+  existing: Partial<QuizFormValues>["question"]
 ) {
   const toUpdate = submitted.filter((q) => q.id);
   const toInsert = submitted.filter((q) => !q.id);
@@ -96,7 +92,7 @@ export const useQuizDetail = ({ mode }: IProps) => {
   const churchId = user?.church_user?.church_id;
 
   const [quiz, setQuiz] = useState<IQuiz>();
-  const [item, setItem] = useState<Partial<ServiceFormValues>>({});
+  const [item, setItem] = useState<Partial<QuizFormValues>>({});
   const [isFetching, setIsFetching] = useState(id !== null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -124,7 +120,7 @@ export const useQuizDetail = ({ mode }: IProps) => {
         church_id: String(data.classes.church_id) || String(churchId),
         question: data.classes.question?.map((q) => ({
           ...q,
-          point: q.point ?? undefined,
+          point: q.point || undefined,
           detail: q.detail
             ? {
                 ...q.detail,
@@ -141,9 +137,7 @@ export const useQuizDetail = ({ mode }: IProps) => {
   }, [id, churchId]);
 
   const onSubmit = useCallback(
-    async (values: ServiceFormValues) => {
-      console.log(values);
-
+    async (values: QuizFormValues) => {
       try {
         setIsSubmitting(true);
         const fileId = await resolvePhotoFileId(values.photo, values.church_id);
@@ -234,7 +228,7 @@ export const useQuizDetail = ({ mode }: IProps) => {
       setIsSubmitting(true);
       const { error } = await deleteClasses([id]);
       if (error) throw error;
-      toast.success("Service deleted successfully");
+      toast.success("Quiz deleted successfully");
       router.back();
     } catch {
       toast.error("Oops, something went wrong");

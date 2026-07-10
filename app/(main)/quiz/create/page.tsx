@@ -1,6 +1,6 @@
 "use client";
 
-import ServiceForm from "@/app/(main)/quiz/_components/form";
+import QuizForm from "@/app/(main)/quiz/_components/form";
 import { useQuizDetail } from "@/app/(main)/quiz/_hooks/use-quiz-detail";
 import PageHeader from "@/components/ui/page-header";
 
@@ -10,7 +10,7 @@ const QuizCreatePage = () => {
   return (
     <>
       <PageHeader title="Quiz Details" />
-      <ServiceForm
+      <QuizForm
         isSubmitting={isSubmitting}
         submitLabel="Create Quiz"
         onSubmit={onSubmit}

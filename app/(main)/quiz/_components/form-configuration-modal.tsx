@@ -31,7 +31,7 @@ import { QUESTION_TYPE } from "@/config/service";
 import { useDebounce } from "@/hooks/use-debounce";
 import { TQuestionType } from "@/types/question";
 
-interface IServiceFormConfigurationModalProps {
+interface IQuizFormConfigurationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: QuestionFormValues) => void;
@@ -39,13 +39,13 @@ interface IServiceFormConfigurationModalProps {
   initialValues?: Partial<QuestionFormValues>;
 }
 
-const ServiceFormConfigurationModal = ({
+const QuizFormConfigurationModal = ({
   open,
   onOpenChange,
   onSubmit,
   isSubmitting,
   initialValues,
-}: IServiceFormConfigurationModalProps) => {
+}: IQuizFormConfigurationModalProps) => {
   const [showAnswer, setShowAnswer] = useState(false);
   const { control, watch, handleSubmit, setValue } =
     useForm<QuestionFormValues>({
@@ -140,7 +140,6 @@ const ServiceFormConfigurationModal = ({
               placeholder="Enter point"
               name="point"
               control={control}
-              required
               type="number"
               containerClassName="flex-1"
             />
@@ -321,4 +320,4 @@ const ServiceFormConfigurationModal = ({
   );
 };
 
-export default ServiceFormConfigurationModal;
+export default QuizFormConfigurationModal;
