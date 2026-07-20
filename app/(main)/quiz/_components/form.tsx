@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import QuizFormConfiguration from "@/app/(main)/quiz/_components/form-configuration";
+import UserList from "@/app/(main)/quiz/_components/user-list";
 import {
   QuestionFormValues,
   QuizFormValues,
@@ -23,11 +24,13 @@ import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { InputImage } from "@/components/ui/input-image";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { IClassUserAnswerSummary } from "@/types/class";
 
 type Props = {
   isSubmitting?: boolean;
   submitLabel?: string;
   initialValues?: Partial<QuizFormValues>;
+  classUserAnswer?: IClassUserAnswerSummary[];
   onDelete?: () => void;
   onSubmit: (values: QuizFormValues) => void;
 };
@@ -36,6 +39,7 @@ const QuizForm = ({
   isSubmitting = false,
   submitLabel = "Save",
   initialValues,
+  classUserAnswer,
   onDelete,
   onSubmit,
 }: Props) => {
@@ -120,6 +124,10 @@ const QuizForm = ({
         isError={!!errors.question}
         onSubmit={onQuestionConfigurationSubmit}
       />
+
+      <Separator />
+
+      <UserList classUserAnswer={classUserAnswer || []} />
 
       <Separator />
 

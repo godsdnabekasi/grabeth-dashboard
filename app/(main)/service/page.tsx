@@ -97,7 +97,7 @@ const ServicePage = () => {
 
   const transformItems = (data: IForm[] = []): IDataTable[] =>
     data.map((d) => ({
-      id: d.id,
+      id: d.class_id,
       name: d.classes.title,
       description: d.classes.description || "-",
       photo: d.classes.file?.link,

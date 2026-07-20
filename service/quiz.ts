@@ -33,7 +33,8 @@ export const getQuiz = async (church_id: number) => {
         classes(*, ${QUERY_FILE}, 
           question!question_class_id_fkey(*,
             question_answer!question_answer_question_id_fkey(*)
-          )
+          ),
+          class_user_answer_summary(*, user(*))
         )
       `
     )

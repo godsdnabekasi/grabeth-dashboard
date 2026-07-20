@@ -242,6 +242,7 @@ export const useQuizDetail = ({ mode }: IProps) => {
   }, [fetchItem]);
 
   return {
+    classUserAnswer: quiz?.classes.class_user_answer_summary,
     item,
     isFetching,
     isSubmitting,

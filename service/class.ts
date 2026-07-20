@@ -25,7 +25,7 @@ export const getClasses = async (filter?: IFilterList & { id?: number }) => {
 export const getClass = async (id: number) => {
   const { data, error } = await supabaseClient
     .from("classes")
-    .select(`*, ${QUERY_FILE}, question!question_class_id_fkey(*)`)
+    .select(`*, ${QUERY_FILE}, question!question_class_id_fkey(*), forms(*)`)
     .eq("id", id)
     .single<IClasses>();
 
@@ -37,7 +37,7 @@ export const upsertClasses = async (values: Partial<IClasses>) => {
   const { data, error } = await supabaseClient
     .from("classes")
     .upsert(values)
-    .select(`*, ${QUERY_FILE}`)
+    .select(`*, ${QUERY_FILE}, forms(*)`)
     .single<IClasses>();
   return { data, error };
 };

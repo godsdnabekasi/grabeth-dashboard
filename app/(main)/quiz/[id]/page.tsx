@@ -6,7 +6,14 @@ import LoadingSection from "@/components/ui/loading-section";
 import PageHeader from "@/components/ui/page-header";
 
 const QuizDetailPage = () => {
-  const { item, isFetching, isSubmitting, onSubmit, onDelete } = useQuizDetail({
+  const {
+    item,
+    isFetching,
+    isSubmitting,
+    onSubmit,
+    onDelete,
+    classUserAnswer,
+  } = useQuizDetail({
     mode: "edit",
   });
 
@@ -19,6 +26,7 @@ const QuizDetailPage = () => {
         <QuizForm
           initialValues={item}
           isSubmitting={isSubmitting}
+          classUserAnswer={classUserAnswer}
           onSubmit={onSubmit}
           onDelete={onDelete}
         />

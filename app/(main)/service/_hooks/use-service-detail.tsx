@@ -126,7 +126,10 @@ export const useServiceDetail = ({ mode }: IProps) => {
       try {
         setIsSubmitting(true);
 
-        const fileId = await resolvePhotoFileId(values.photo, values.church_id);
+        const fileId =
+          values.photo && typeof values.photo !== "string"
+            ? await resolvePhotoFileId(values.photo, values.church_id)
+            : values.photo;
 
         const classPayload: Partial<IClasses> = {
           id: values.id,
@@ -144,7 +147,8 @@ export const useServiceDetail = ({ mode }: IProps) => {
         //* FORM
         if (classData) {
           const { error: formError } = await upsertForm({
-            class_id: classData.id,
+            id: classData?.forms?.id,
+            class_id: values.id || classData.id,
             is_private: false,
           });
           if (formError) throw formError;
@@ -153,7 +157,7 @@ export const useServiceDetail = ({ mode }: IProps) => {
         //* QUESTIONS
         const questionPayloads = buildQuestionPayloads(
           values.question,
-          Number(values.id)
+          values.id ? Number(values.id) : classData!.id
         );
         const { toUpdate, toInsert, toDelete } = partitionQuestions(
           questionPayloads,

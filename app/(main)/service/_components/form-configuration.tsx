@@ -32,7 +32,7 @@ const ServiceFormConfiguration = ({
   >();
   const [openQuestionModal, setOpenQuestionModal] = useState(false);
   const [questions, setQuestions] = useState<QuestionFormValues[]>(
-    initialValues as QuestionFormValues[]
+    (initialValues as QuestionFormValues[]) || []
   );
 
   const handleQuestionSubmit = (question: QuestionFormValues) => {

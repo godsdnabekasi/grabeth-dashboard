@@ -36,7 +36,7 @@ export const getForm = async (id: number) => {
 
 export const upsertForm = async (values: IPayloadForm) => {
   const { data, error } = await supabaseClient
-    .from("form")
+    .from("forms")
     .upsert(values)
     .select("*")
     .returns<IForm[]>();
