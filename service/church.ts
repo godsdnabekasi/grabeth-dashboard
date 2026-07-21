@@ -1,4 +1,5 @@
 import { supabaseClient } from "@/lib/supabase/client";
+import { QUERY_FILE } from "@/service/file";
 import { IFilterList } from "@/types";
 import {
   IChurch,
@@ -50,7 +51,7 @@ export const getChurchById = async (id: number) => {
         church_file(file(link)),
         church_location(*, ${QUERY_LOCATION}),
         church_service(*, ${QUERY_LOCATION}),
-        church_bank_account(*)
+        church_bank_account(*, ${QUERY_FILE})
       `);
 
   const { data, error } = await query.eq("id", id).single<IChurch>();

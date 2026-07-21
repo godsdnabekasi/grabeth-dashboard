@@ -58,7 +58,11 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
               id: cs.location?.id || undefined,
             },
           })),
-          bank_accounts: data.church_bank_account,
+          bank_accounts: data.church_bank_account?.map((bank) => ({
+            ...bank,
+            qris: bank.file?.link,
+            qris_id: bank.file_id,
+          })),
           location: data.church_location?.[0] && {
             id: data.church_location?.[0].location_id,
             name: data.church_location?.[0].location?.name || "",

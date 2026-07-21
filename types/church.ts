@@ -9,7 +9,8 @@ export type TChurchBankName =
   | "bri"
   | "mandiri"
   | "cimb"
-  | "permata";
+  | "permata"
+  | "qris";
 
 export interface IChurch {
   id: number;
@@ -87,7 +88,9 @@ export interface IChurchBankAccount {
   name: string;
   account_number: number;
   bank: TChurchBankName;
+  file_id?: number;
+  file?: IFile;
   created_at?: string;
 }
 
-export type IPayloadChurchBankAccount = Omit<IChurchBankAccount, "id">;
+export type IPayloadChurchBankAccount = Omit<IChurchBankAccount, "id" | "file">;

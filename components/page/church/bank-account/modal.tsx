@@ -16,6 +16,7 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { InputImage } from "@/components/ui/input-image";
 import { Select } from "@/components/ui/select";
 import { BANK_ACCOUNT_SELECT } from "@/config/bank";
 
@@ -36,13 +37,16 @@ const ChurchBankAccountModal = ({
 }: ChurchBankAccountModalProps) => {
   const params = useParams();
   const churchId = Number(params.id);
-  const { control, handleSubmit } = useForm<BankAccountFormValues>({
+  const { control, handleSubmit, watch } = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountSchema),
     defaultValues: initialValues || {
       name: "",
       church_id: churchId,
     },
   });
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const selectedType = watch("bank");
 
   const onSubmit = (data: BankAccountFormValues) => {
     handleSave(data);
@@ -73,12 +77,21 @@ const ChurchBankAccountModal = ({
             options={BANK_ACCOUNT_SELECT}
           />
           <Input
-            label="Account Number"
+            label={selectedType === "qris" ? "Merchant PAN" : "Account Number"}
             name="account_number"
             control={control}
             placeholder="e.g. 1234567890"
             type="number"
           />
+          {selectedType === "qris" && (
+            <InputImage
+              label="QRIS"
+              name="qris"
+              control={control}
+              recommendedSize="1080x1080px (1:1)"
+              className="aspect-square"
+            />
+          )}
         </div>
 
         <DialogFooter>

@@ -6,6 +6,7 @@ import bri from "@/assets/images/bank/bri.png";
 import cimb from "@/assets/images/bank/cimb.png";
 import mandiri from "@/assets/images/bank/mandiri.png";
 import permata from "@/assets/images/bank/permata.png";
+import qris from "@/assets/images/bank/qris.png";
 import { SelectOption } from "@/components/ui/select-container";
 import { TChurchBankName } from "@/types/church";
 
@@ -36,6 +37,10 @@ export const BANK_ACCOUNT: Record<
   permata: {
     label: "Permata",
     image: permata,
+  },
+  qris: {
+    label: "QRIS",
+    image: qris,
   },
 };
 

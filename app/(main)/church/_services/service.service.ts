@@ -10,10 +10,16 @@ export const submitChurchServices = async (
   payload: ServiceFormValues[],
   existingData: ServiceFormValues[]
 ) => {
-  const newServices = payload?.filter((s) => !s.id);
-  const updatedServices = payload?.filter((s) => s.id);
+  const data = payload.map((p) => ({
+    ...p,
+    end_time: `${p.end_time}:00+07`,
+    start_time: `${p.start_time}:00+07`,
+    open_time: `${p.open_time}:00+07`,
+  }));
+  const newServices = data.filter((s) => !s.id);
+  const updatedServices = data.filter((s) => s.id);
   const deletedServices = existingData
-    ?.filter((s) => !payload?.some((service) => service.id === s.id))
+    ?.filter((s) => !data.some((service) => service.id === s.id))
     .map((s) => s.id!);
 
   if (newServices?.length) {
