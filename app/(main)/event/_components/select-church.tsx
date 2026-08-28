@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Control } from "react-hook-form";
 import { toast } from "sonner";
 
-import { EventFormValues } from "@/components/page/event/types";
+import { EventFormValues } from "@/app/(main)/event/_types/schema";
 import { Select } from "@/components/ui/select";
 import { SelectOption } from "@/components/ui/select-container";
 import { useDebounce } from "@/hooks/use-debounce";

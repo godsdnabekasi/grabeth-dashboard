@@ -9,11 +9,9 @@ export interface IEvent {
   church_id?: number;
   church?: IChurch;
   publish_time: string;
-  unpublish_time: string;
-  start_time: string;
-  end_time: string;
+  unpublish_time?: string | null;
   capacity?: number | null;
-  website?: string;
+  website?: string | null;
   created_at?: string;
   event_file?: IEventFile;
   event_bookings?: IEventBooking[];
@@ -23,9 +21,24 @@ export interface IEvent {
     location_id: number;
     location: ILocation;
   }[];
+  event_schedule?: IEventSchedule[];
 }
 
 export interface IPayloadEvent extends Omit<IEvent, "id"> {
+  id?: number | undefined;
+}
+
+export interface IEventSchedule {
+  id: number;
+  event_id: number;
+  start_time: string | null;
+  end_time?: string | null;
+  capacity?: number | null;
+  published_time?: string | null;
+  unpublished_time?: string | null;
+}
+
+export interface IPayloadEventSchedule extends Omit<IEventSchedule, "id"> {
   id?: number | undefined;
 }
 

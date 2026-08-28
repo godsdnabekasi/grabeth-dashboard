@@ -2,9 +2,10 @@
 
 import * as React from "react";
 
-import { Clock } from "lucide-react";
+import { Clock, X } from "lucide-react";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +66,23 @@ function InputTimeContainer({
           {...props}
         />
         {postfix}
+        {props.value && (
+          <Button
+            variant="ghost"
+            size="none"
+            type="button"
+            className="z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              const event = {
+                target: { value: "", name: props.name },
+              } as React.ChangeEvent<HTMLInputElement>;
+              props.onChange?.(event);
+            }}
+          >
+            <X className="size-4 text-gray-500 hover:text-gray-900" />
+          </Button>
+        )}
       </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>

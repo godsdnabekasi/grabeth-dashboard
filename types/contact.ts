@@ -1,6 +1,6 @@
 import { IUser } from "@/types/user";
 
-type ContactType =
+export type ContactType =
   | "email"
   | "phone"
   | "whatsapp"
@@ -10,7 +10,7 @@ type ContactType =
   | "instagram"
   | "tiktok"
   | "telegram"
-  | "line"
+  | "youtube"
   | "website"
   | "gmail";
 
@@ -31,10 +31,5 @@ export interface IUserContact {
   user_id?: string;
   user?: IUser;
   contact_id?: number;
-  contact?: {
-    id: number;
-    type?: string;
-    value?: string;
-    created_at?: string;
-  };
+  contact?: IContact;
 }

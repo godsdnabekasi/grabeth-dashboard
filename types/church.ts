@@ -1,3 +1,4 @@
+import { IContact } from "@/types/contact";
 import { IFile } from "@/types/file";
 import { ILocation } from "@/types/location";
 import { IUser } from "@/types/user";
@@ -11,6 +12,7 @@ export type TChurchBankName =
   | "cimb"
   | "permata"
   | "qris";
+export type TChurchService = "general" | "community" | "generation";
 
 export interface IChurch {
   id: number;
@@ -24,6 +26,11 @@ export interface IChurch {
     file: IFile;
   };
   youtube_channel_url?: string;
+  church_contact?: {
+    church_id: number;
+    contact_id: number;
+    contact: IContact;
+  }[];
   church_location?: IChurchLocation[];
   church_user?: IChurchUser & { count: number }[];
   church_service?: IChurchService[];
@@ -70,15 +77,21 @@ export interface IChurchService {
   church_id: number;
   name: string;
   description?: string;
-  start_time: string;
-  end_time: string;
-  open_time: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  open_time?: string | null;
   location_id?: number;
   location?: ILocation;
   created_at?: Date;
+  type: TChurchService;
+  file_id?: number | null;
+  file?: IFile;
 }
 
-export type IPayloadChurchService = Omit<IChurchService, "id" | "location">;
+export type IPayloadChurchService = Omit<
+  IChurchService,
+  "id" | "location" | "file"
+>;
 
 //* BANK ACCOUNT
 

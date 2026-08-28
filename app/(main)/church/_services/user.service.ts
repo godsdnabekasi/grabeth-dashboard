@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-import { ISelectedMember } from "@/components/page/church/member/container";
+import { ISelectedMember } from "@/app/(main)/church/_components/service/member/container";
 import {
   deleteChurchUsers,
   getChurchUsers,

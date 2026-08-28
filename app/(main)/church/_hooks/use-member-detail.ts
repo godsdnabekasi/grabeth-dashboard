@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
-import { IChurchMemberContainer } from "@/components/page/church/member/container";
+import { IChurchMemberContainer } from "@/app/(main)/church/_components/member/container";
 import { IPaginationProps } from "@/components/ui/data-table";
 import { useDebounce } from "@/hooks/use-debounce";
 import { formatDate } from "@/lib/utils";

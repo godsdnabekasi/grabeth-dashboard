@@ -1,8 +1,8 @@
 import { PlusCircle, Ticket, Trash2 } from "lucide-react";
-import { Control, UseFormSetValue, useFieldArray } from "react-hook-form";
+import { Control, useFieldArray } from "react-hook-form";
 
-import { EventFormValues } from "./types";
-import EventFormCategory from "@/components/page/event/form-category";
+import EventFormCategory from "@/app/(main)/event/_components/form-category";
+import { EventFormValues } from "@/app/(main)/event/_types/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -11,11 +11,10 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   control: Control<EventFormValues>;
-  setValue: UseFormSetValue<EventFormValues>;
   isSubmitting: boolean;
 }
 
-const EventFormTicket = ({ control, setValue, isSubmitting }: Props) => {
+const EventFormTicket = ({ control, isSubmitting }: Props) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: "tickets",
@@ -111,7 +110,6 @@ const EventFormTicket = ({ control, setValue, isSubmitting }: Props) => {
                     <EventFormCategory
                       control={control}
                       parentIndex={index}
-                      setValue={setValue}
                       isSubmitting={isSubmitting}
                     />
                   </div>

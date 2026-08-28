@@ -76,33 +76,38 @@ const ServiceForm = ({
           <InputImage
             label="Photo"
             name="photo"
-            recommendedSize="1080x1080px (1:1)"
-            className="aspect-square"
+            recommendedSize="1920x1080px (16:9)"
+            className="aspect-video max-w-none"
             {...commonProps}
           />
-          <div className="space-y-6">
-            <Input
-              label="Name"
-              placeholder="Enter name"
-              name="name"
-              required
-              {...commonProps}
-            />
-            <InputDatePicker
-              label="Published date"
-              placeholder="Enter published date"
-              required
-              name="published_at"
-              {...commonProps}
-            />
-            <InputDatePicker
-              label="Unpublished date"
-              placeholder="Enter unpublished date"
-              required
-              name="unpublished_at"
-              {...commonProps}
-            />
-          </div>
+          <InputImage
+            label="Thumbnail"
+            name="thumbnail"
+            recommendedSize="1920x1080px (16:9)"
+            className="aspect-video max-w-none"
+            {...commonProps}
+          />
+          <Input
+            label="Name"
+            placeholder="Enter name"
+            name="name"
+            required
+            {...commonProps}
+          />
+          <InputDatePicker
+            label="Published date"
+            placeholder="Enter published date"
+            required
+            name="published_at"
+            {...commonProps}
+          />
+          <InputDatePicker
+            label="Unpublished date"
+            placeholder="Enter unpublished date"
+            required
+            name="unpublished_at"
+            {...commonProps}
+          />
           <Textarea
             label="Description"
             placeholder="Enter description"

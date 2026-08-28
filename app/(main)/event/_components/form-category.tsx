@@ -1,7 +1,7 @@
 import { PlusCircle, Trash2 } from "lucide-react";
-import { Control, UseFormSetValue, useFieldArray } from "react-hook-form";
+import { Control, useFieldArray } from "react-hook-form";
 
-import { EventFormValues } from "./types";
+import { EventFormValues } from "@/app/(main)/event/_types/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,6 @@ interface Props {
   control: Control<EventFormValues>;
   isSubmitting: boolean;
   parentIndex: number;
-  setValue: UseFormSetValue<EventFormValues>;
 }
 
 const EventFormCategory = ({ control, parentIndex, isSubmitting }: Props) => {

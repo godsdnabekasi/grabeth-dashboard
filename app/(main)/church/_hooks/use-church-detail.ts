@@ -7,22 +7,33 @@ import { toast } from "sonner";
 
 import { submitPhoto } from "../_services/photo.service";
 import { upsertBankAccount } from "@/app/(main)/church/_services/bankAccount.service";
+import { submitPhone } from "@/app/(main)/church/_services/contact.service";
 import { submitLocation } from "@/app/(main)/church/_services/location.service";
 import { submitChurchServices } from "@/app/(main)/church/_services/service.service";
 import {
   onAddMemberChurch,
   onRemoveMemberChurch,
 } from "@/app/(main)/church/_services/user.service";
-import { ChurchFormValues } from "@/components/page/church/types";
-import { formatTimeString } from "@/lib/utils";
+import { ChurchFormValues } from "@/app/(main)/church/_types/types";
+import { formatDate, formatTime, formatTimeString } from "@/lib/utils";
 import { deleteChurchs, getChurchById, upsertChurch } from "@/service/church";
+import { IChurch } from "@/types/church";
+import { ContactType } from "@/types/contact";
 import { LocationType } from "@/types/location";
+
+const CONTACT_ORDER: ContactType[] = [
+  "phone",
+  "instagram",
+  "facebook",
+  "youtube",
+];
 
 export const useChurchDetail = (mode?: "create" | "edit") => {
   const router = useRouter();
   const params = useParams();
   const churchId = Number(params.id);
 
+  const [church, setChurch] = useState<IChurch>();
   const [item, setItem] = useState<ChurchFormValues>();
   const [deletedMember, setDeletedMember] = useState<string[]>([]);
   const [isFetching, setIsFetching] = useState(false);
@@ -39,8 +50,25 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
       if (error) throw error;
 
       if (data) {
+        setChurch(data);
         setItem({
           ...data,
+          contact: data.church_contact
+            ? data.church_contact
+                .map((cc) => ({
+                  id: cc.contact_id,
+                  type: cc.contact?.type as ContactType,
+                  value: cc.contact?.value || "",
+                }))
+                .sort((a, b) => {
+                  const indexA = CONTACT_ORDER.indexOf(a.type);
+                  const indexB = CONTACT_ORDER.indexOf(b.type);
+                  return (
+                    (indexA === -1 ? 999 : indexA) -
+                    (indexB === -1 ? 999 : indexB)
+                  );
+                })
+            : undefined,
           description: data.description || "",
           establish_date: data.establish_date
             ? new Date(data.establish_date)
@@ -48,9 +76,11 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
           photo: data.church_file?.file?.link || undefined,
           services: data.church_service?.map((cs) => ({
             ...cs,
+            photo: cs.file?.link,
             description: cs.description || "",
-            start_time: cs.start_time ? formatTimeString(cs.start_time) : "",
-            end_time: cs.end_time ? formatTimeString(cs.end_time) : "",
+            day: formatDate(cs.start_time, "dddd"),
+            start_time: cs.start_time ? formatTime(cs.start_time) : "",
+            end_time: cs.end_time ? formatTime(cs.end_time) : "",
             open_time: cs.open_time ? formatTimeString(cs.open_time) : "",
             location: {
               name: cs.location?.name || "",
@@ -97,10 +127,13 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
 
   const onSubmit = useCallback(
     async (formData: ChurchFormValues) => {
+      console.log(formData);
+
       try {
         setIsSubmitting(true);
         const {
           photo,
+          contact,
           file_id,
           location,
           members,
@@ -124,6 +157,39 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
             churchId: church_id,
             fileId: file_id,
           });
+        }
+
+        //* CONTACT
+        if (contact && contact.length > 0) {
+          function formatPhoneNumber(phone: string): string {
+            if (phone.startsWith("8")) {
+              return "628" + phone.slice(1);
+            }
+
+            return phone;
+          }
+          await submitPhone(
+            contact
+              .filter((c) => c.value)
+              .map((c, i) => {
+                return {
+                  ...c,
+                  type: CONTACT_ORDER[i],
+                  value:
+                    CONTACT_ORDER[i] === "phone"
+                      ? formatPhoneNumber(String(c.value))
+                      : c.value || "",
+                };
+              }),
+            church?.church_contact?.map((cc) => {
+              return {
+                id: cc?.contact_id,
+                type: cc?.contact?.type as ContactType,
+                value: cc?.contact?.value || "",
+              };
+            }) || [],
+            church_id
+          );
         }
 
         //* LOCATION
@@ -184,6 +250,7 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
       }
     },
     [
+      church?.church_contact,
       churchId,
       deletedMember,
       fetchItem,

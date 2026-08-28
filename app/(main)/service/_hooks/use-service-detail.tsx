@@ -85,6 +85,7 @@ export const useServiceDetail = ({ mode }: IProps) => {
   const id = params?.id ? Number(params.id) : null;
   const churchId = user?.church_user?.church_id;
 
+  const [service, setService] = useState<IClasses>();
   const [item, setItem] = useState<Partial<ServiceFormValues>>({});
   const [isFetching, setIsFetching] = useState(id !== null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,6 +99,7 @@ export const useServiceDetail = ({ mode }: IProps) => {
       if (error) throw error;
       if (!data) return;
 
+      setService(data);
       setItem({
         ...data,
         name: data.title,
@@ -106,6 +108,7 @@ export const useServiceDetail = ({ mode }: IProps) => {
         unpublished_at:
           data.unpublished_at && new Date(formatDate(data.unpublished_at)),
         photo: data.file?.link,
+        thumbnail: data.thumbnail?.link,
         church_id: String(data.church_id) || String(churchId),
         question: data.question?.map((q) => ({
           ...q,
@@ -123,21 +126,30 @@ export const useServiceDetail = ({ mode }: IProps) => {
 
   const onSubmit = useCallback(
     async (values: ServiceFormValues) => {
+      console.log(values);
+
       try {
         setIsSubmitting(true);
 
         const fileId =
           values.photo && typeof values.photo !== "string"
             ? await resolvePhotoFileId(values.photo, values.church_id)
-            : values.photo;
+            : service?.file_id;
+        const thumbnailFileId =
+          values.thumbnail && typeof values.thumbnail !== "string"
+            ? await resolvePhotoFileId(values.thumbnail, values.church_id)
+            : service?.thumbnail_file_id;
 
         const classPayload: Partial<IClasses> = {
           id: values.id,
           title: values.name,
           description: values.description,
           file_id: fileId,
+          thumbnail_file_id: thumbnailFileId,
           published_at: new Date(values.published_at!),
-          unpublished_at: new Date(values.unpublished_at!),
+          unpublished_at: values.unpublished_at
+            ? new Date(values.unpublished_at!)
+            : null,
           church_id: churchId,
         };
         const { data: classData, error: classError } =
@@ -188,7 +200,15 @@ export const useServiceDetail = ({ mode }: IProps) => {
         setIsSubmitting(false);
       }
     },
-    [churchId, item.question, mode, router, fetchItem]
+    [
+      service?.file_id,
+      service?.thumbnail_file_id,
+      churchId,
+      item.question,
+      mode,
+      fetchItem,
+      router,
+    ]
   );
 
   const onDelete = useCallback(async () => {

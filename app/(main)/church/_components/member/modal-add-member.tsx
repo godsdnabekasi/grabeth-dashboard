@@ -5,8 +5,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 
-import { ISelectedMember } from "@/components/page/church/member/container";
-import ChurchMemberItem from "@/components/page/church/member/item";
+import { ISelectedMember } from "@/app/(main)/church/_components/member/container";
+import ChurchMemberItem from "@/app/(main)/church/_components/member/item";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

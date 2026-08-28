@@ -4,7 +4,7 @@ import { uploadImage } from "@/service/file";
 interface IPropsPhoto {
   photo: File;
   churchId?: number;
-  fileId?: number;
+  fileId?: number | null;
 }
 
 const submitPhoto = async ({ photo, churchId, fileId }: IPropsPhoto) => {
@@ -22,6 +22,17 @@ const submitPhoto = async ({ photo, churchId, fileId }: IPropsPhoto) => {
     });
     if (fileError) throw fileError;
   }
+};
+
+const submitPhotoService = async ({ photo, churchId, fileId }: IPropsPhoto) => {
+  const { data: uploadData, error: uploadError } = await uploadImage({
+    file: photo,
+    path: `church/${churchId}/service/${Date.now()}`,
+    file_id: fileId,
+  });
+  if (uploadError) throw uploadError;
+
+  return { data: uploadData, error: uploadError };
 };
 
 const deletePhoto = async () => {};
@@ -42,4 +53,4 @@ const submitPhotoQRIS = async (payload: IPropsPhoto[]) => {
   return uploadData;
 };
 
-export { submitPhoto, deletePhoto, submitPhotoQRIS };
+export { submitPhoto, deletePhoto, submitPhotoQRIS, submitPhotoService };

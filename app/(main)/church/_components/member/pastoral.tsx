@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import {
   IChurchMemberContainer,
   ISelectedMember,
-} from "@/components/page/church/member/container";
-import MemberSettingModal from "@/components/page/church/member/member-setting-modal";
-import ChurchModalAddMember from "@/components/page/church/member/modal-add-member";
+} from "@/app/(main)/church/_components/member/container";
+import MemberSettingModal from "@/app/(main)/church/_components/member/member-setting-modal";
+import ChurchModalAddMember from "@/app/(main)/church/_components/member/modal-add-member";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

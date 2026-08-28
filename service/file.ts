@@ -52,7 +52,7 @@ export const uploadFiles = async (payload: IPayloadFile[]) => {
 export async function uploadImage(payload: {
   file: File;
   path: string;
-  file_id?: number;
+  file_id?: number | null;
 }) {
   const { path, file, file_id } = payload;
   if (!(file instanceof File))

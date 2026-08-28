@@ -49,14 +49,15 @@ export const getChurchById = async (id: number) => {
   const query = supabaseClient.from("church").select(`
         *,
         church_file(file(link)),
+        church_contact(*, contact(*)),
         church_location(*, ${QUERY_LOCATION}),
-        church_service(*, ${QUERY_LOCATION}),
+        church_service(*, ${QUERY_LOCATION}, ${QUERY_FILE}),
         church_bank_account(*, ${QUERY_FILE})
       `);
 
   const { data, error } = await query.eq("id", id).single<IChurch>();
 
-  return { data, error };
+  return { data: data as IChurch, error };
 };
 
 export const getChurchUsers = async (
@@ -109,7 +110,7 @@ export const getChurchUsers = async (
     .returns<IChurchUser[]>()
     .order("created_at", { ascending: false });
 
-  return { data, error, count };
+  return { data: data as IChurchUser[], error, count };
 };
 
 //* INSERT
@@ -243,4 +244,15 @@ export const deleteChurchBankAccounts = async (ids: number[]) => {
   const { error } = await query.returns<IChurchBankAccount[]>();
 
   return { error };
+};
+
+//* CONTACT
+export const upsertChurchContact = async (
+  payload: { church_id: number; contact_id: number }[]
+) => {
+  const { data, error } = await supabaseClient
+    .from("church_contact")
+    .upsert(payload);
+
+  return { data, error };
 };

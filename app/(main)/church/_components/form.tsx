@@ -8,21 +8,21 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import ChurchBankAcoountContainer from "@/components/page/church/bank-account/container";
-import DeleteSection from "@/components/page/church/delete";
-import ChurchLocationCardList from "@/components/page/church/location/card";
-import ChurchLocationModal from "@/components/page/church/location/location-modal";
+import ChurchBankAcoountContainer from "@/app/(main)/church/_components/bank-account/container";
+import DeleteSection from "@/app/(main)/church/_components/delete";
+import ChurchLocationCardList from "@/app/(main)/church/_components/location/card";
+import ChurchLocationModal from "@/app/(main)/church/_components/location/location-modal";
 import ChurchMemberContainer, {
   ISelectedMember,
-} from "@/components/page/church/member/container";
-import ChurchPastoral from "@/components/page/church/member/pastoral";
-import ChurchServiceContainer from "@/components/page/church/service/container";
+} from "@/app/(main)/church/_components/member/container";
+import ChurchPastoral from "@/app/(main)/church/_components/member/pastoral";
+import ChurchServiceContainer from "@/app/(main)/church/_components/service/container";
 import {
   BankAccountFormValues,
   ChurchFormValues,
   ChurchLocationFormValues,
   churchSchema,
-} from "@/components/page/church/types";
+} from "@/app/(main)/church/_types/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import FormSection from "@/components/ui/form/section";
@@ -200,6 +200,14 @@ const ChurchForm = ({
               name="establish_date"
               {...commonProps}
             />
+            <Input
+              label="Phone"
+              placeholder="628123456789"
+              name="contact.0.value"
+              required
+              type="number"
+              {...commonProps}
+            />
           </div>
           <Textarea
             label="Description"
@@ -208,6 +216,27 @@ const ChurchForm = ({
             {...commonProps}
             containerClassName="col-span-2"
           />
+
+          <div className="col-span-2 grid grid-cols-3 gap-6">
+            <Input
+              label="Instagram"
+              placeholder="https://www.instagram.com/"
+              name="contact.1.value"
+              {...commonProps}
+            />
+            <Input
+              label="Facebook"
+              placeholder="https://www.facebook.com/"
+              name="contact.2.value"
+              {...commonProps}
+            />
+            <Input
+              label="Youtube"
+              placeholder="https://www.youtube.com/"
+              name="contact.3.value"
+              {...commonProps}
+            />
+          </div>
         </Card>
       </FormSection>
 

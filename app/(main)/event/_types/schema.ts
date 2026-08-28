@@ -11,24 +11,7 @@ const locationSchema = z
     lng: z.number().optional().nullable(),
   })
   .optional()
-  .nullable()
-  .superRefine((data, ctx) => {
-    if (!data) return;
-    if (data.name && !data.address) {
-      ctx.addIssue({
-        code: "custom",
-        message: REQUIRED_MSG,
-        path: ["address"],
-      });
-    }
-    if (data.lat && !data.name) {
-      ctx.addIssue({
-        code: "custom",
-        message: REQUIRED_MSG,
-        path: ["name"],
-      });
-    }
-  });
+  .nullable();
 
 const dateSchema = z
   .date(REQUIRED_MSG)
@@ -58,19 +41,7 @@ const publishTimeSchema = z
     }
   });
 
-const unpublishTimeSchema = z
-  .date(REQUIRED_MSG)
-  .min(1, REQUIRED_MSG)
-  .nullable()
-  .superRefine((value, ctx) => {
-    if (!value) {
-      ctx.addIssue({
-        code: "custom",
-        message: REQUIRED_MSG,
-        path: ["unpublish_time"],
-      });
-    }
-  });
+const unpublishTimeSchema = z.date().optional().nullable();
 
 const categoriesSchema = z.object({
   id: z.number().optional().nullable(),
@@ -78,6 +49,15 @@ const categoriesSchema = z.object({
   description: z.string().optional().nullable(),
   price: z.number().optional().nullable(),
   final_price: z.number().optional().nullable(),
+});
+
+const scheduleSchema = z.object({
+  id: z.number().optional(),
+  event_id: z.number().nullable(),
+  date: dateSchema,
+  start_time: z.string(REQUIRED_MSG).nullable(),
+  end_time: z.string(REQUIRED_MSG).optional().nullable(),
+  // capacity: z.number(REQUIRED_MSG).optional().nullable(),
 });
 
 const ticketSchema = z.object({
@@ -94,16 +74,15 @@ export const eventSchema = z.object({
   id: z.number().optional(),
   name: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
   description: z.string(REQUIRED_MSG).optional(),
-  date: dateSchema,
   church_id: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
-  start_time: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
-  end_time: z.string(REQUIRED_MSG).min(1, REQUIRED_MSG),
   capacity: z.number(REQUIRED_MSG).nullable().optional(),
   publish_time: publishTimeSchema,
   unpublish_time: unpublishTimeSchema,
   cover_image: z.any().optional(),
   location: locationSchema.optional(),
+  schedules: z.array(scheduleSchema).optional(),
   tickets: z.array(ticketSchema).optional(),
+  website: z.string().optional().nullable(),
 });
 
 export type CategoryFormValues = z.infer<typeof categoriesSchema>;

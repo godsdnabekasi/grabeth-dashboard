@@ -1,8 +1,8 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import moment from "moment";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 
@@ -78,19 +78,33 @@ const DatePickerContent = memo(
     disabled,
     containerClassName,
   }: DatePickerContentProps<T>) => {
+    const [currentValue, setCurrentValue] = useState(value);
     const errorBorder = useMemo(() => (error ? "border-red-500" : ""), [error]);
     const disabledClass = disabled
       ? "bg-gray-200 pointer-events-none cursor-not-allowed !opacity-100"
       : "";
 
     const handleSelect = useCallback(
-      (date?: Date) => onChange(date),
+      (date?: Date) => {
+        onChange(date);
+        setCurrentValue(date);
+      },
       [onChange]
     );
 
     const displayValue = useMemo(
-      () => (value ? moment(value).format("DD MMM YYYY") : placeholder),
-      [value, placeholder]
+      () =>
+        currentValue ? moment(currentValue).format("DD MMM YYYY") : placeholder,
+      [currentValue, placeholder]
+    );
+
+    const handleClear = useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        onChange(undefined);
+        setCurrentValue(undefined);
+      },
+      [onChange]
     );
 
     return (
@@ -102,21 +116,26 @@ const DatePickerContent = memo(
         )}
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
+            <div
               id={name as string}
-              disabled={disabled}
               className={cn(
-                "justify-between text-sm font-normal",
-                value ? "" : "text-muted-foreground",
+                "flex h-10 flex-row items-center bg-white cursor-pointer",
+                "gap-3 rounded-md border border-input px-3 shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground md:text-sm dark:bg-input/30",
+                currentValue ? "" : "text-muted-foreground",
                 errorBorder,
                 disabledClass
               )}
             >
-              {displayValue}
               <CalendarIcon className="size-4 opacity-50" />
-            </Button>
+              <p className="flex-1">{displayValue}</p>
+              {currentValue && (
+                <Button variant="ghost" size="none" onClick={handleClear}>
+                  <X className="size-4 opacity-50" />
+                </Button>
+              )}
+            </div>
           </PopoverTrigger>
+
           <PopoverContent className="overflow-hidden p-0 w-auto" align="start">
             <Calendar
               mode="single"

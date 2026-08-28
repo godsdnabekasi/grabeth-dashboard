@@ -75,8 +75,8 @@ export const parentColumns: ColumnDef<IDataTable>[] = [
     ),
   },
   {
-    accessorKey: "publishing_window",
-    header: "Publishing Window",
+    accessorKey: "status",
+    header: "Status",
   },
   {
     accessorKey: "created_date",
@@ -95,13 +95,24 @@ const ServicePage = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
+  const currentDate = new Date();
+
   const transformItems = (data: IForm[] = []): IDataTable[] =>
     data.map((d) => ({
       id: d.class_id,
       name: d.classes.title,
       description: d.classes.description || "-",
       photo: d.classes.file?.link,
-      publishing_window: `${formatDate(d.classes.published_at)} - ${formatDate(d.classes.unpublished_at)}`,
+      status:
+        d.classes.unpublished_at &&
+        currentDate < new Date(d.classes.unpublished_at)
+          ? `Live Scheduled`
+          : d.classes.published_at &&
+              new Date(d.classes.published_at) > currentDate
+            ? `Not Published - ${formatDate(d.classes.published_at)}`
+            : d.classes.unpublished_at
+              ? "Unpublished"
+              : "Live",
       created_date: d.classes.created_at
         ? formatDate(d.classes.created_at)
         : "-",

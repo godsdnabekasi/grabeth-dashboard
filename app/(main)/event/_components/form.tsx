@@ -8,15 +8,15 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 // import SelectChurch from "./select-church";
-import { EventFormValues, eventSchema } from "./types";
-import EventFormTicket from "@/components/page/event/form-ticket";
+import { EventFormValues, eventSchema } from "../_types/schema";
+import EventFormSchedule from "@/app/(main)/event/_components/form-schedule";
+import EventFormTicket from "@/app/(main)/event/_components/form-ticket";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { InputDatePicker } from "@/components/ui/input-date-picker";
 import { InputImage } from "@/components/ui/input-image";
 import { InputLocation } from "@/components/ui/input-location";
-import { InputTime } from "@/components/ui/input-time";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -35,7 +35,7 @@ const EventForm = ({
 }: Props) => {
   const router = useRouter();
 
-  const { control, setValue, handleSubmit } = useForm<EventFormValues>({
+  const { control, handleSubmit } = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: initialValues,
   });
@@ -61,55 +61,34 @@ const EventForm = ({
           name="cover_image"
           required
           control={control}
-          recommendedSize="1200x1600px (3:4)"
+          recommendedSize="(16:9)"
+          className="aspect-video max-w-none"
           disabled={isSubmitting}
         />
-        <Input
-          label="Name"
-          placeholder="Enter name"
-          name="name"
-          required
-          control={control}
-          disabled={isSubmitting}
-        />
-        <Input
-          label="Capacity"
-          placeholder="Enter capacity"
-          name="capacity"
-          control={control}
-          disabled={isSubmitting}
-          type="number"
-        />
-        <InputDatePicker
-          label="Date"
-          placeholder="Select date"
-          name="date"
-          required
-          control={control}
-          disabled={isSubmitting}
-        />
+        <div className="space-y-4">
+          <Input
+            label="Name"
+            placeholder="Enter name"
+            name="name"
+            required
+            control={control}
+            disabled={isSubmitting}
+          />
+          <Input
+            label="Capacity"
+            placeholder="Enter capacity"
+            name="capacity"
+            control={control}
+            disabled={isSubmitting}
+            type="number"
+          />
+        </div>
         {/* FOR SUPER ADMIN ONLY */}
         {/* <SelectChurch
           value={initialValues?.church_id}
           control={control}
           isSubmitting={isSubmitting}
           /> */}
-        <InputTime
-          label="Start Time"
-          placeholder="Select time"
-          name="start_time"
-          required
-          control={control}
-          disabled={isSubmitting}
-        />
-        <InputTime
-          label="End Time"
-          placeholder="Select time"
-          name="end_time"
-          required
-          control={control}
-          disabled={isSubmitting}
-        />
         <Textarea
           label="Description"
           placeholder="Enter description"
@@ -117,6 +96,21 @@ const EventForm = ({
           control={control}
           disabled={isSubmitting}
           containerClassName="col-span-2"
+        />
+        <Input
+          label="Place"
+          placeholder="Enter place name"
+          name="location.name"
+          required={!!location?.address}
+          control={control}
+          disabled={isSubmitting}
+        />
+        <Input
+          label="Action Link"
+          placeholder="https://"
+          name="website"
+          control={control}
+          disabled={isSubmitting}
         />
         <InputDatePicker
           label="Publish Date"
@@ -130,18 +124,8 @@ const EventForm = ({
           label="Unpublish Date"
           placeholder="Select date"
           name="unpublish_time"
-          required
           control={control}
           disabled={isSubmitting}
-        />
-        <Input
-          label="Location Name"
-          placeholder="Enter location name"
-          name="location.name"
-          required={!!location?.address}
-          control={control}
-          disabled={isSubmitting}
-          containerClassName="col-span-2"
         />
         <InputLocation
           label="Address"
@@ -155,11 +139,11 @@ const EventForm = ({
 
       <Separator />
 
-      <EventFormTicket
-        control={control}
-        setValue={setValue}
-        isSubmitting={isSubmitting}
-      />
+      <EventFormSchedule control={control} isSubmitting={isSubmitting} />
+
+      <Separator />
+
+      <EventFormTicket control={control} isSubmitting={isSubmitting} />
 
       <CardFooter className="justify-between">
         <Button variant="outline" onClick={() => router.back()}>

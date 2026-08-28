@@ -4,9 +4,9 @@ import { CirclePlus, Users } from "lucide-react";
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import MemberSettingModal from "@/app/(main)/church/_components/member/member-setting-modal";
+import ChurchModalAddMember from "@/app/(main)/church/_components/member/modal-add-member";
 import { useMemberDetail } from "@/app/(main)/church/_hooks/use-member-detail";
-import MemberSettingModal from "@/components/page/church/member/member-setting-modal";
-import ChurchModalAddMember from "@/components/page/church/member/modal-add-member";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -1,16 +1,24 @@
 import { useState } from "react";
 
-import { CirclePlus, Clock, MapPin, Pencil, Trash2 } from "lucide-react";
+import {
+  Calendar,
+  CirclePlus,
+  Clock,
+  MapPin,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
-import ChurchServiceModal from "@/components/page/church/service/modal";
-import { ServiceFormValues } from "@/components/page/church/types";
+import ChurchServiceModal from "@/app/(main)/church/_components/service/modal";
+import { SERVICE_TYPE_OPTIONS } from "@/app/(main)/church/_configs/service";
+import { ServiceFormValues } from "@/app/(main)/church/_types/types";
 import Alert from "@/components/ui/alert";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import EmptySection from "@/components/ui/empty-section";
 import FormSection from "@/components/ui/form/section";
-import { formatTimeString } from "@/lib/utils";
 import { IChurchService } from "@/types/church";
 
 interface IChurchServiceContainerProps {
@@ -106,18 +114,32 @@ const ChurchServiceContainer = ({
             >
               <CardHeader className="p-4 border-b border-b-border">
                 <span className="flex items-center gap-2">
-                  <Clock className="size-4" />
-                  <span className="font-semibold">
-                    {formatTimeString(item.start_time || "")} -{" "}
-                    {formatTimeString(item.end_time || "")}
-                  </span>
+                  <Calendar className="size-4 text-muted-foreground" />
+                  <span className="font-semibold">{item.day}</span>
                 </span>
+                {item.start_time && item.end_time && (
+                  <span className="flex items-center gap-2">
+                    <Clock className="size-4 text-muted-foreground" />
+                    <span className="font-semibold">
+                      {item.start_time} - {item.end_time}
+                    </span>
+                  </span>
+                )}
               </CardHeader>
+
               <div className="flex-1 flex flex-col p-4 gap-1">
+                <Badge>
+                  {
+                    SERVICE_TYPE_OPTIONS.find((i) => i.value === item.type)
+                      ?.label
+                  }
+                </Badge>
                 <h3 className="font-semibold text-sm">{item.name}</h3>
                 {item.location?.name && (
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="size-4" />
+                  <span className="flex items-center gap-1 text-sm text-muted-foreground truncate">
+                    <span>
+                      <MapPin className="size-4" />
+                    </span>
                     {item.location?.name}
                   </span>
                 )}

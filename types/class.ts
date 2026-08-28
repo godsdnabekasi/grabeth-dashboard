@@ -8,10 +8,12 @@ export interface IClasses {
   id: number;
   file_id?: number;
   file?: IFile;
+  thumbnail_file_id?: number;
+  thumbnail?: IFile;
   title: string;
   description?: string;
   published_at: Date;
-  unpublished_at: Date;
+  unpublished_at?: Date | null;
   created_at: Date;
   grade?: string;
   church_id?: number;

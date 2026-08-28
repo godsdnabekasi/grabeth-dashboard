@@ -7,10 +7,12 @@ import {
   IEventCategory,
   IEventFile,
   IEventLocation,
+  IEventSchedule,
   IPayloadEvent,
   IPayloadEventBooking,
   IPayloadEventBookingCategory,
   IPayloadEventCategory,
+  IPayloadEventSchedule,
 } from "@/types/event";
 
 export const getEvents = async (
@@ -50,7 +52,8 @@ export const getEvent = async (id: number) => {
       *,
       event_location(location(*)),
       event_file(file(link)),
-      event_bookings(*, event_booking_categories(*, event_categories(*)))
+      event_bookings(*, event_booking_categories(*, event_categories(*))),
+      event_schedule(*)
     `
     )
     .eq("id", id)
@@ -173,6 +176,37 @@ export const deleteEventBookingCategory = async (
     .or(filter)
     .select("*")
     .returns<IEventBookingCategory[]>();
+
+  return { data, error };
+};
+
+//* Event Schedule
+export const getEventSchedule = async (event_id: number) => {
+  const { data, error } = await supabaseClient
+    .from("event_schedule")
+    .select("*")
+    .eq("event_id", event_id)
+    .returns<IEventSchedule[]>();
+
+  return { data, error };
+};
+
+export const upsertEventSchedule = async (payload: IPayloadEventSchedule[]) => {
+  const { data, error } = await supabaseClient
+    .from("event_schedule")
+    .upsert(payload)
+    .select("*")
+    .returns<IEventSchedule[]>();
+
+  return { data, error };
+};
+
+export const deleteEventSchedule = async (ids: number[]) => {
+  const { data, error } = await supabaseClient
+    .from("event_schedule")
+    .delete()
+    .in("id", ids)
+    .select("*");
 
   return { data, error };
 };

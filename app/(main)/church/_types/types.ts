@@ -1,7 +1,12 @@
 import z from "zod";
 
 import { LOCATION_TYPE } from "@/config/common";
-import { TChurchBankName, TChurchUserRole } from "@/types/church";
+import {
+  TChurchBankName,
+  TChurchService,
+  TChurchUserRole,
+} from "@/types/church";
+import { ContactType } from "@/types/contact";
 
 const CHURCH_USER_ROLE_TYPE = [
   "pastor",
@@ -20,6 +25,20 @@ const CHURCH_BANK_TYPE = [
   "danamon",
   "qris",
 ] as TChurchBankName[];
+
+const CHURCH_CONTACT_TYPE: ContactType[] = [
+  "phone",
+  "email",
+  "instagram",
+  "facebook",
+  "youtube",
+];
+
+const CHURCH_SERVICE_TYPE: TChurchService[] = [
+  "general",
+  "community",
+  "generation",
+];
 
 const REQUIRED_MSG = "Required";
 
@@ -60,9 +79,9 @@ export const serviceSchema = z.object({
   church_id: z.number().optional(),
   name: z.string(REQUIRED_MSG),
   description: z.string(REQUIRED_MSG).optional(),
-  start_time: z.string(REQUIRED_MSG),
-  end_time: z.string(REQUIRED_MSG),
-  open_time: z.string(REQUIRED_MSG),
+  start_time: z.string(REQUIRED_MSG).optional().nullable(),
+  end_time: z.string(REQUIRED_MSG).optional().nullable(),
+  open_time: z.string(REQUIRED_MSG).optional().nullable(),
   location: z
     .object({
       id: z.number().optional(),
@@ -70,6 +89,10 @@ export const serviceSchema = z.object({
       address: z.string(REQUIRED_MSG).optional(),
     })
     .optional(),
+  type: z.enum(CHURCH_SERVICE_TYPE),
+  day: z.string(REQUIRED_MSG).optional(),
+  photo: z.any().optional(),
+  file_id: z.number().optional().nullable(),
 });
 
 export type ServiceFormValues = z.infer<typeof serviceSchema>;
@@ -85,6 +108,14 @@ export const bankAccountSchema = z.object({
 });
 
 export type BankAccountFormValues = z.infer<typeof bankAccountSchema>;
+
+const contactSchema = z.object({
+  type: z.enum(CHURCH_CONTACT_TYPE).optional(),
+  value: z.string(REQUIRED_MSG).optional().or(z.literal("")),
+  id: z.number().optional(),
+});
+
+export type ContactFormValues = z.infer<typeof contactSchema>;
 
 export const churchSchema = z.object({
   id: z.number().optional(),
@@ -109,6 +140,7 @@ export const churchSchema = z.object({
   members: memberSchema.array().optional(),
   services: serviceSchema.array().optional(),
   bank_accounts: bankAccountSchema.array().optional(),
+  contact: contactSchema.array().optional(),
 });
 
 export type ChurchFormValues = z.infer<typeof churchSchema>;

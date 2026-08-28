@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 
 import { submitPhotoQRIS } from "@/app/(main)/church/_services/photo.service";
-import { BankAccountFormValues } from "@/components/page/church/types";
+import { BankAccountFormValues } from "@/app/(main)/church/_types/types";
 import {
   deleteChurchBankAccounts,
   upsertChurchBankAccount,

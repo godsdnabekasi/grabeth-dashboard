@@ -1,7 +1,7 @@
 // MemberSettingModal.tsx — generic, reusable version
 import { useCallback, useState } from "react";
 
-import { ISelectedMember } from "@/components/page/church/member/container";
+import { ISelectedMember } from "@/app/(main)/church/_components/member/container";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

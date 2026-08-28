@@ -1,0 +1,436 @@
+import { useCallback, useState } from "react";
+
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useSnapshot } from "valtio";
+
+import { EventFormValues } from "@/app/(main)/event/_types/schema";
+import { formatDate, formatTime } from "@/lib/utils";
+import {
+  deleteEventBooking,
+  deleteEventBookingCategory,
+  deleteEventCategory,
+  deleteEventSchedule,
+  getEvent,
+  upsertEvent,
+  upsertEventBooking,
+  upsertEventBookingCategory,
+  upsertEventCategory,
+  upsertEventFile,
+  upsertEventLocation,
+  upsertEventSchedule,
+} from "@/service/event";
+import { uploadFile, uploadFileToStorage } from "@/service/file";
+import { upsertLocation } from "@/service/location";
+import userStore from "@/store/user";
+import { IEventBookingCategory } from "@/types/event";
+
+async function handleImageUpload(
+  coverImage: File,
+  eventId: number,
+  churchId: number,
+  eventName: string
+) {
+  if (typeof coverImage !== "object") return null;
+
+  const { data: storageData, error: storageError } = await uploadFileToStorage({
+    bucket: "images",
+    file: coverImage,
+    filePath: `event/${churchId}/${eventName}_${Date.now()}.${coverImage.name.split(".").pop()}`,
+  });
+
+  if (storageError) throw storageError;
+
+  const { data: fileData, error: fileError } = await uploadFile({
+    name: storageData?.path || "-",
+    type: "image",
+    link: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${storageData?.fullPath || "-"}`,
+  });
+
+  if (fileError) throw fileError;
+
+  if (fileData?.id) {
+    await upsertEventFile({ event_id: eventId, file_id: fileData.id });
+  }
+
+  return fileData?.id;
+}
+
+async function handleLocationSync(
+  location:
+    | {
+        id?: number | undefined;
+        name?: string | undefined;
+        address?: string | null | undefined;
+        lat?: number | null | undefined;
+        lng?: number | null | undefined;
+      }
+    | null
+    | undefined,
+  eventId: number,
+  isNewLocation: boolean
+) {
+  if (!location?.name) return;
+
+  const { data: locationData, error } = await upsertLocation({
+    id: location.id ? Number(location.id) : undefined,
+    name: location.name,
+    address: location.address || "",
+    long_lat:
+      location.lng && location.lat
+        ? [Number(location.lng), Number(location.lat)]
+        : undefined,
+    type: "building",
+  });
+
+  if (error) throw error;
+
+  if (isNewLocation && locationData) {
+    await upsertEventLocation({
+      event_id: eventId,
+      location_id: Number(locationData?.id),
+    });
+  }
+}
+
+export function useEventDetail(mode: "create" | "edit") {
+  const { id } = useParams();
+  const eventId = Number(id);
+  const { user } = useSnapshot(userStore);
+  const router = useRouter();
+
+  const isEditMode = mode === "edit";
+
+  const [item, setItem] = useState<EventFormValues | undefined>();
+  const [isLoading, setIsLoading] = useState({ submit: false, fetch: false });
+
+  const fetchItem = useCallback(async () => {
+    if (!eventId) return;
+
+    try {
+      setIsLoading((prev) => ({ ...prev, fetch: true }));
+      const { data, error } = await getEvent(eventId);
+      if (error) throw error;
+
+      if (data) {
+        setItem({
+          ...data,
+          publish_time: data.publish_time ? new Date(data.publish_time) : null,
+          unpublish_time: data.unpublish_time
+            ? new Date(data.unpublish_time)
+            : null,
+          church_id: String(data?.church_id),
+          cover_image: data.event_file?.file?.link,
+          location: data.event_location?.[0]?.location
+            ? {
+                id: Number(data.event_location[0].location.id),
+                name: data.event_location[0].location.name,
+                address: data.event_location[0].location.address,
+                lat: data.event_location[0].location.long_lat
+                  ? Number(data.event_location[0].location.long_lat?.[1])
+                  : null,
+                lng: data.event_location[0].location.long_lat
+                  ? Number(data.event_location[0].location.long_lat?.[0])
+                  : null,
+              }
+            : undefined,
+          tickets: data.event_bookings?.map((booking) => ({
+            ...booking,
+            publish_time: booking.publish_time
+              ? new Date(booking.publish_time)
+              : null,
+            unpublish_time: booking.unpublish_time
+              ? new Date(booking.unpublish_time)
+              : null,
+            categories: booking.event_booking_categories?.map((category) => ({
+              id: category.event_categories?.id,
+              title: category.event_categories?.title,
+              description: category.event_categories?.description,
+              price: category.price,
+              final_price: category.final_price,
+            })),
+          })),
+          schedules: data.event_schedule?.map((schedule) => ({
+            id: schedule.id,
+            event_id: Number(schedule.event_id),
+            date: schedule.start_time ? new Date(schedule.start_time) : null,
+            start_time: schedule.start_time
+              ? formatTime(schedule.start_time)
+              : "",
+            end_time: schedule.end_time ? formatTime(schedule.end_time) : "",
+          })),
+        });
+      }
+    } catch (error) {
+      toast.error((error as Error)?.message || "Failed to fetch event");
+    } finally {
+      setIsLoading((prev) => ({ ...prev, fetch: false }));
+    }
+  }, [eventId]);
+
+  const onSubmit = useCallback(
+    async (formData: EventFormValues) => {
+      console.log(formData);
+
+      try {
+        setIsLoading((prev) => ({ ...prev, submit: true }));
+
+        const {
+          // date,
+          cover_image,
+          location,
+          tickets,
+          schedules,
+          ...restFormData
+        } = formData;
+        const churchId = Number(user?.church_user?.church_id);
+        // const dateStr = formatDate(date!, "YYYY-MM-DD");
+
+        // const start_time = `${dateStr}T${restFormData.start_time}:00+07:00`;
+        // const end_time = `${dateStr}T${restFormData.end_time}:00+07:00`;
+
+        const { data, error: eventError } = await upsertEvent({
+          ...restFormData,
+          ...(eventId ? { id: eventId } : {}),
+          church_id: churchId,
+          // start_time,
+          // end_time,
+          publish_time: String(restFormData.publish_time?.toISOString()),
+          unpublish_time: restFormData.unpublish_time
+            ? String(restFormData.unpublish_time?.toISOString())
+            : null,
+        });
+        if (eventError) throw eventError;
+        const event_id = data!.id;
+
+        if (schedules && schedules.length > 0) {
+          const newSchedules = schedules.filter((item) => !item.id);
+          const updateSchedules = schedules.filter((item) => item.id);
+          const deletedSchedules =
+            item?.schedules
+              ?.filter((item) => !schedules?.some((t) => t.id === item.id))
+              ?.map((item) => item.id!) || [];
+
+          if (deletedSchedules.length > 0) {
+            const { error } = await deleteEventSchedule(deletedSchedules);
+            if (error) throw "Failed to delete event schedules";
+          }
+
+          if (newSchedules.length > 0) {
+            const { error } = await upsertEventSchedule(
+              newSchedules.map(({ date, ...res }) => {
+                const start_time = `${formatDate(date!, "YYYY-MM-DD")}T${res.start_time}:00+07:00`;
+                const end_time = res.end_time
+                  ? `${formatDate(date!, "YYYY-MM-DD")}T${res.end_time}:00+07:00`
+                  : null;
+                return {
+                  ...res,
+                  start_time,
+                  end_time,
+                  event_id,
+                };
+              })
+            );
+            if (error) throw "Failed to update event schedules";
+          }
+
+          if (updateSchedules.length > 0) {
+            const { error } = await upsertEventSchedule(
+              updateSchedules.map(({ date, ...res }) => {
+                const start_time = `${formatDate(date!, "YYYY-MM-DD")}T${res.start_time}:00+07:00`;
+                const end_time = res.end_time
+                  ? `${formatDate(date!, "YYYY-MM-DD")}T${res.end_time}:00+07:00`
+                  : null;
+                return {
+                  ...res,
+                  start_time,
+                  end_time,
+                  event_id,
+                };
+              })
+            );
+            if (error) throw "Failed to update event schedules";
+          }
+        }
+
+        await Promise.all([
+          handleImageUpload(cover_image, event_id, churchId, formData.name),
+          handleLocationSync(location, event_id, !formData.location?.id),
+        ]);
+
+        const deletedTicketIds =
+          item?.tickets
+            ?.filter((oldT) => !tickets?.some((newT) => newT.id === oldT.id))
+            .map((t) => Number(t.id)) || [];
+
+        if (deletedTicketIds.length > 0) {
+          await deleteEventBooking(deletedTicketIds);
+        }
+
+        //* EVENT BOOKING
+        const ticketIdMap: Record<string, number> = {};
+        const existsTicket = tickets?.filter((t) => t.id) || [];
+        const newTicket = tickets?.filter((t) => !t.id) || [];
+
+        existsTicket.forEach((t) => {
+          if (t.id) ticketIdMap[t.title!] = t.id;
+        });
+
+        await Promise.all([
+          existsTicket.length > 0 &&
+            upsertEventBooking(
+              existsTicket.map((t) => ({
+                id: t.id!,
+                event_id: event_id,
+                title: t.title!,
+                description: t.description || "",
+                terms: t.terms || "",
+                publish_time: String(restFormData.publish_time?.toISOString()),
+                unpublish_time: String(
+                  restFormData.unpublish_time?.toISOString()
+                ),
+              }))
+            ),
+
+          (async () => {
+            if (newTicket.length === 0) return;
+            const { data } = await upsertEventBooking(
+              newTicket.map((t) => ({
+                event_id: event_id,
+                title: t.title!,
+                description: t.description || "",
+                terms: t.terms || "",
+                publish_time: String(restFormData.publish_time?.toISOString()),
+                unpublish_time: String(
+                  restFormData.unpublish_time?.toISOString()
+                ),
+              }))
+            );
+            data?.forEach((t) => {
+              ticketIdMap[t.title] = t.id;
+            });
+          })(),
+        ]);
+
+        //* EVENT CATEGORY
+        const categoriesFlatten =
+          tickets?.flatMap((t) =>
+            t.categories?.map((c) => ({ ...c, ticketTitle: t.title }))
+          ) || [];
+
+        const allNewCategoryIds =
+          tickets?.flatMap((t) => t.categories?.map((c) => c.id) || []) || [];
+        const deletedCategoryIds =
+          item?.tickets
+            ?.flatMap((t) => t.categories || [])
+            .filter((oldC) => oldC.id && !allNewCategoryIds.includes(oldC.id))
+            .map((c) => Number(c.id)) || [];
+
+        if (deletedCategoryIds.length > 0) {
+          await deleteEventCategory(deletedCategoryIds);
+        }
+
+        const categoryIdMap: Record<string, number> = {};
+        const existsCategory = categoriesFlatten.filter((c) => c?.id);
+        const newCategory = categoriesFlatten.filter((c) => !c?.id);
+
+        existsCategory.forEach((c) => {
+          if (c?.id) categoryIdMap[c.title!] = c.id;
+        });
+
+        await Promise.all([
+          existsCategory.length > 0 &&
+            upsertEventCategory(
+              existsCategory.map((c) => ({
+                id: c?.id ?? undefined,
+                event_id: event_id,
+                title: c?.title ?? "",
+                description: c?.description ?? "",
+              }))
+            ),
+          (async () => {
+            if (newCategory.length === 0) return;
+            const { data } = await upsertEventCategory(
+              newCategory.map((c) => ({
+                event_id: event_id,
+                title: c?.title ?? "",
+                description: c?.description ?? "",
+              }))
+            );
+            data?.forEach((c) => {
+              categoryIdMap[c.title] = c.id;
+            });
+          })(),
+        ]);
+
+        //* EVENT BOOKING CATEGORY
+        const bookingCategoryRows: IEventBookingCategory[] = [];
+        tickets?.forEach((t) => {
+          const tId = t.id || (t.title ? ticketIdMap[t.title] : null);
+          if (!tId) return;
+
+          t.categories?.forEach((c) => {
+            const cId = c.id || (c.title ? categoryIdMap[c.title] : null);
+            if (!cId) return;
+
+            bookingCategoryRows.push({
+              event_booking_id: tId,
+              event_category_id: cId,
+              price: c.price ?? null,
+              final_price: c.final_price ?? null,
+            });
+          });
+        });
+
+        const oldPairs =
+          item?.tickets?.flatMap((t) =>
+            (t.categories || [])
+              .filter((c) => t.id && c.id)
+              .map((c) => ({ bid: Number(t.id), cid: Number(c.id) }))
+          ) || [];
+
+        const currentPairs =
+          tickets?.flatMap((t) =>
+            (t.categories || [])
+              .filter((c) => t.id && c.id)
+              .map((c) => ({ bid: Number(t.id), cid: Number(c.id) }))
+          ) || [];
+
+        const pairsToDelete = oldPairs
+          .filter(
+            (oldP) =>
+              !currentPairs.some(
+                (currP) => currP.bid === oldP.bid && currP.cid === oldP.cid
+              )
+          )
+          .map((p) => ({ event_booking_id: p.bid, event_category_id: p.cid }));
+
+        await Promise.all([
+          bookingCategoryRows.length > 0 &&
+            upsertEventBookingCategory(bookingCategoryRows),
+          pairsToDelete.length > 0 && deleteEventBookingCategory(pairsToDelete),
+        ]);
+
+        toast.success("Successfully updated");
+        if (isEditMode) await fetchItem();
+        if (!isEditMode) router.replace("/event");
+      } catch (error) {
+        toast.error("Failed to update event");
+        console.error(error);
+      } finally {
+        setIsLoading((prev) => ({ ...prev, submit: false }));
+      }
+    },
+    [
+      eventId,
+      fetchItem,
+      isEditMode,
+      item?.schedules,
+      item?.tickets,
+      router,
+      user?.church_user?.church_id,
+    ]
+  );
+
+  return { item, isLoading, fetchItem, onSubmit };
+}

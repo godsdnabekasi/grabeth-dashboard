@@ -97,6 +97,9 @@ const ServiceQuestionCard = ({
       />
       <div className="flex flex-1 flex-col space-y-1">
         <h2 className="font-semibold">{question.title}</h2>
+        <span className="text-xs text-muted-foreground">
+          {question.description}
+        </span>
         <Badge
           className={cn(
             questionConfig[question.type as keyof typeof questionConfig].bg,

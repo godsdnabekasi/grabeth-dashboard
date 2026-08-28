@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 
-import { ISelectedMember } from "@/components/page/church/member/container";
+import { ISelectedMember } from "@/app/(main)/church/_components/member/container";
 import { Avatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatDate } from "@/lib/utils";
