@@ -100,7 +100,7 @@ const QuizPage = () => {
       name: d.classes.title,
       description: d.classes.description || "-",
       photo: d.classes.file?.link,
-      publishing_window: `${formatDate(d.classes.published_at)} - ${formatDate(d.classes.unpublished_at)}`,
+      publishing_window: `${formatDate(d.classes.published_at)} - ${formatDate(String(d.classes.unpublished_at))}`,
       created_date: d.classes.created_at
         ? formatDate(d.classes.created_at)
         : "-",

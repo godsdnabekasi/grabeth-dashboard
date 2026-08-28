@@ -108,9 +108,13 @@ const EventPage = () => {
     data.map((d) => ({
       id: d.id,
       name: d.name,
-      date: d.start_time ? formatDate(d.start_time, "DD MMM YYYY") : "",
-      time: d.start_time
-        ? `${formatTime(d.start_time)} - ${formatTime(d.end_time)}`
+      date: d.event_schedule?.[0]?.start_time
+        ? formatDate(d.event_schedule?.[0]?.start_time, "DD MMM YYYY")
+        : "",
+      time: d.event_schedule?.[0]?.start_time
+        ? `${formatTime(d.event_schedule?.[0]?.start_time)} - ${formatTime(
+            String(d.event_schedule?.[0]?.end_time)
+          )}`
         : "",
       published_at: d.publish_time ? formatDate(d.publish_time) : "",
       unpublished_at: d.unpublish_time ? formatDate(d.unpublish_time) : "",

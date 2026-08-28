@@ -20,6 +20,7 @@ import {
   upsertSmallGroupUser,
 } from "@/service/small-group";
 import userStore from "@/store/user";
+import { LocationType } from "@/types/location";
 import { SmallGroupRole } from "@/types/small-group";
 
 async function handleImageUpload(
@@ -101,21 +102,19 @@ const CoolCreatePage = () => {
 
         if (location?.name) {
           const { data: locationData, error: locationError } =
-            await upsertLocation([
-              {
-                name: location.name || "-",
-                address: location.address || "-",
-                long_lat: [Number(location.lat), Number(location.lng)],
-                type: "home",
-              },
-            ]);
+            await upsertLocation({
+              name: location.name || "-",
+              address: location.address || "-",
+              long_lat: [Number(location.lat), Number(location.lng)],
+              type: "home" as LocationType,
+            });
           if (locationError)
             throw "Failed to update location, please try again later";
 
           const { error: locationSmallGroupError } =
             await upsertSmallGroupLocation({
               small_group_id: smallGroupData!.id,
-              location_id: Number(locationData?.[0]?.id),
+              location_id: Number(locationData?.id),
             });
           if (locationSmallGroupError)
             throw "Failed to update location, please try again later";

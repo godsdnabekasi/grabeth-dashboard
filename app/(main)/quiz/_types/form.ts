@@ -73,7 +73,7 @@ export const quizSchema = z.object({
   description: z.string(REQUIRED_MSG).optional(),
   photo: z.any().optional(),
   published_at: z.date().optional(),
-  unpublished_at: z.date().optional(),
+  unpublished_at: z.date().optional().nullable(),
   church_id: z.string().optional(),
   question: questionSchema.array(),
 });

@@ -78,7 +78,7 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
             ...cs,
             photo: cs.file?.link,
             description: cs.description || "",
-            day: formatDate(cs.start_time, "dddd"),
+            day: formatDate(String(cs.start_time), "dddd"),
             start_time: cs.start_time ? formatTime(cs.start_time) : "",
             end_time: cs.end_time ? formatTime(cs.end_time) : "",
             open_time: cs.open_time ? formatTimeString(cs.open_time) : "",
