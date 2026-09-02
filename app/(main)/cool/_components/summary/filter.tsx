@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { FilterPeriod } from "@/components/page/cool/types";
+import type { FilterPeriod } from "../../_types";
 import { cn } from "@/lib/utils";
 
 const FILTER_OPTIONS: { label: string; value: FilterPeriod }[] = [

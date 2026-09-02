@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BankAccountFormValues,
   bankAccountSchema,
-} from "@/app/(main)/church/_types/types";
+} from "@/app/(main)/church/_types/bank";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

@@ -86,6 +86,8 @@ export interface IChurchService {
   type: TChurchService;
   file_id?: number | null;
   file?: IFile;
+
+  church_service_schedule?: IChurchServiceSchedule[];
 }
 
 export type IPayloadChurchService = Omit<
@@ -107,3 +109,17 @@ export interface IChurchBankAccount {
 }
 
 export type IPayloadChurchBankAccount = Omit<IChurchBankAccount, "id" | "file">;
+
+export interface IChurchServiceSchedule {
+  id: number;
+  church_service_id: number;
+  start_time: string | null;
+  end_time: string | null;
+}
+
+export interface IPayloadChurchServiceSchedule extends Omit<
+  IChurchServiceSchedule,
+  "id"
+> {
+  id?: number;
+}

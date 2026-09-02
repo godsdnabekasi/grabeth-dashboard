@@ -6,9 +6,8 @@ import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { useSnapshot } from "valtio";
 
-import MemberItem, {
-  ISelectedMember,
-} from "@/components/page/cool/member-item";
+import MemberItem from "./member-item";
+import { ICoolMember } from "@/app/(main)/cool/_types/member";
 import { Button } from "@/components/ui/button";
 import {
   DialogClose,
@@ -25,7 +24,7 @@ import { IUser } from "@/types/user";
 
 interface IModalAddMemberProps {
   members: string[];
-  onAdd: (selectedMembers: ISelectedMember[]) => void;
+  onAdd: (selectedMembers: ICoolMember[]) => void;
 }
 
 const ModalAddMember = ({
@@ -36,14 +35,17 @@ const ModalAddMember = ({
   const [members, setMembers] = useState<IUser[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedMembers, setSelectedMembers] = useState<ISelectedMember[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<ICoolMember[]>([]);
 
-  const toggleMember = useCallback((selected: ISelectedMember) => {
-    setSelectedMembers((prev) =>
-      prev.find((i) => i.id === selected.id)
-        ? prev.filter((i) => i !== selected)
-        : [...prev, selected]
-    );
+  const toggleMember = useCallback((selected: ICoolMember) => {
+    setSelectedMembers((prev) => {
+      const exist = prev.find((i) => i.id === selected.id);
+      if (exist) {
+        return prev.filter((i) => i.id !== selected.id);
+      } else {
+        return [...prev, selected];
+      }
+    });
   }, []);
 
   const debouncedSearch = useDebounce(search, 300);
@@ -71,6 +73,8 @@ const ModalAddMember = ({
   }, [debouncedSearch, memberFormValues, user?.church_user?.church_id]);
 
   const onAddMember = useCallback(() => {
+    console.log(selectedMembers);
+
     onAdd(selectedMembers);
   }, [onAdd, selectedMembers]);
 

@@ -6,7 +6,7 @@ import type {
   PulseInfo,
   PulseStatus,
   SmallGroupReport,
-} from "./types";
+} from "../_types";
 import { ISmallGroup, SmallGroupRole } from "@/types/small-group";
 
 const TARGET_PER_MONTH = 3;
@@ -124,6 +124,21 @@ export function useSmallGroupReport(
   return useMemo(() => {
     const { start, end } = getFilterRange(filter, today);
     const months = getMonthsInRange(start, end);
+
+    if (!data) {
+      return {
+        periodLabel: PERIOD_LABELS[filter],
+        months,
+        totalMeetings: 0,
+        avgAttendance: 0,
+        avgMeetingsPerMonth: 0,
+        targetPerMonth: TARGET_PER_MONTH,
+        metMonths: 0,
+        monthlyMeetings: [],
+        pulse: PULSE_MAP["tidak-aktif"],
+        members: [],
+      };
+    }
 
     // Filter attendances within range
     const filteredAttendances = data.small_group_attendance?.filter(

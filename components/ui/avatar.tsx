@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { Avatar as AvatarPrimitive } from "radix-ui";
 
-import { cn } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 
 function Avatar({
   className,
@@ -28,13 +28,6 @@ function Avatar({
     "bg-green-100 text-green-800",
   ];
   const colorClass = AVATAR_COLORS[(name?.length ?? 0) % AVATAR_COLORS.length];
-  function getInitials(name: string): string {
-    return name
-      .split(" ")
-      .slice(0, 2)
-      .map((w) => w[0]?.toUpperCase() ?? "")
-      .join("");
-  }
 
   return (
     <AvatarPrimitive.Root

@@ -4,21 +4,31 @@ import {
   Building2,
   ChefHat,
   CircleParking,
+  CirclePlus,
   Home,
   Hospital,
   LucideIcon,
+  Map,
   Pencil,
   Store,
   Toilet,
   Trash2,
   Trees,
 } from "lucide-react";
+import { useForm } from "react-hook-form";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import {
+  ChurchFormValues,
+  churchSchema,
+} from "@/app/(main)/church/_types/types";
 import Alert from "@/components/ui/alert";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import EmptySection from "@/components/ui/empty-section";
+import FormSection from "@/components/ui/form/section";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { LocationType } from "@/types/location";
@@ -33,6 +43,8 @@ interface ChurchLocationCardListProps {
     district?: string;
     postal_code?: number | null;
   };
+  initialValues: ChurchFormValues;
+  setOpenLocationModal: (val: boolean) => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -41,7 +53,14 @@ const ChurchLocationCardList = ({
   data,
   onEdit,
   onDelete,
+  initialValues,
+  setOpenLocationModal,
 }: ChurchLocationCardListProps) => {
+  const { getValues } = useForm<ChurchFormValues>({
+    resolver: zodResolver(churchSchema),
+    defaultValues: initialValues,
+  });
+
   const IconMap: Record<LocationType, LucideIcon> = {
     apartment: Building,
     home: Home,
@@ -63,7 +82,19 @@ const ChurchLocationCardList = ({
   const Icon = data ? IconMap[data.type ?? "building"] : Building;
 
   return (
-    <>
+    <FormSection
+      title="Locations"
+      description="Manage church locations"
+      icon={Map}
+      action={
+        !getValues("location") && (
+          <Button size="md" onClick={() => setOpenLocationModal(true)}>
+            <CirclePlus />
+            Add Location
+          </Button>
+        )
+      }
+    >
       <Card
         className="py-4"
         contentClassName="px-4 justify-between flex flex-col flex-1 space-y-4"
@@ -120,7 +151,7 @@ const ChurchLocationCardList = ({
           <EmptySection message="No Location Data" />
         )}
       </Card>
-    </>
+    </FormSection>
   );
 };
 

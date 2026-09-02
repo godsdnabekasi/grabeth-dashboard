@@ -1,4 +1,5 @@
-import { useForm } from "react-hook-form";
+import { Trash2 } from "lucide-react";
+import { useFieldArray, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -6,7 +7,7 @@ import { SERVICE_TYPE_OPTIONS } from "@/app/(main)/church/_configs/service";
 import {
   ServiceFormValues,
   serviceSchema,
-} from "@/app/(main)/church/_types/types";
+} from "@/app/(main)/church/_types/service";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { InputDay } from "@/components/ui/input-day";
 import { InputImage } from "@/components/ui/input-image";
 import { InputTime } from "@/components/ui/input-time";
+import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -39,7 +41,17 @@ const ChurchServiceModal = ({
 }: ChurchServiceModalProps) => {
   const { control, handleSubmit } = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      schedules: initialValues?.schedules ?? [
+        { day: "", start_time: "", end_time: "" },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "schedules",
   });
 
   const onSubmit = (data: ServiceFormValues) => {
@@ -90,10 +102,53 @@ const ChurchServiceModal = ({
             placeholder="e.g. This service is for those who want to grow in their faith..."
             containerClassName="col-span-2"
           />
-          <InputDay label="Day" name="day" control={control} />
-          <InputTime label="Start Time" name="start_time" control={control} />
-          <InputTime label="End Time" name="end_time" control={control} />
-          <InputTime label="Open Time" name="open_time" control={control} />
+
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 col-span-2">
+            <div className="flex justify-between items-center">
+              <Label className="text-lg font-semibold">Schedules</Label>
+              <Button
+                size="sm"
+                onClick={() =>
+                  append({ day: "", start_time: "", end_time: "" })
+                }
+              >
+                Add Schedule
+              </Button>
+            </div>
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="space-y-4 border-b border-gray-200 py-4 last:border-0"
+              >
+                <div className="flex items-end gap-4">
+                  <div className="grid grid-cols-3 gap-4 w-full">
+                    <InputDay
+                      label="Day"
+                      name={`schedules.${index}.day`}
+                      control={control}
+                    />
+                    <InputTime
+                      label="Start Time"
+                      name={`schedules.${index}.start_time`}
+                      control={control}
+                    />
+                    <InputTime
+                      label="End Time"
+                      name={`schedules.${index}.end_time`}
+                      control={control}
+                    />
+                  </div>
+                  <Button
+                    size="icon-lg"
+                    variant="destructive"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
 
           <Input
             label="Room/Location"

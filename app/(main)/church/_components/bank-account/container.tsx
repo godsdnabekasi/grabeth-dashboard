@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Pencil, Plus, Trash2, Users } from "lucide-react";
 
 import ChurchBankAccountModal from "@/app/(main)/church/_components/bank-account/modal";
-import { BankAccountFormValues } from "@/app/(main)/church/_types/types";
+import { BankAccountFormValues } from "@/app/(main)/church/_types/bank";
 import Alert from "@/components/ui/alert";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";

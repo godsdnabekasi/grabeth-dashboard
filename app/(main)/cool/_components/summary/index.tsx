@@ -1,28 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { TrendingUp } from "lucide-react";
+import moment from "moment";
 
-import type { FilterPeriod, PulseStatus } from "./types";
-import { formatMonthKey, useSmallGroupReport } from "./useCoolSummary";
-import { ISelectedMember } from "@/components/page/cool/member-item";
-import { ISelectedChangedMember } from "@/components/page/cool/member-setting-modal";
-import CoolSection from "@/components/page/cool/section";
-import CoolSummaryChart from "@/components/page/cool/summary/chart";
-import CoolSummaryFilter from "@/components/page/cool/summary/filter";
-import CoolSummaryMember from "@/components/page/cool/summary/member";
+import { useQuery } from "@tanstack/react-query";
+
+import {
+  formatMonthKey,
+  useSmallGroupReport,
+} from "../../_hooks/useCoolSummary";
+import type { FilterPeriod, PulseStatus } from "../../_types";
+import CoolSection from "../section";
+import CoolSummaryChart from "./chart";
+import CoolSummaryFilter from "./filter";
+import CoolSummaryMember from "./member";
+import { fetchSmallGroupById } from "@/app/(main)/cool/_hooks/useCoolDetail";
 import { Card } from "@/components/ui/card";
+import LoadingSection from "@/components/ui/loading-section";
 import { ISmallGroup } from "@/types/small-group";
-
-interface SmallGroupReportProps {
-  data: ISmallGroup;
-  today?: Date;
-  onChangePeriod?: (period: FilterPeriod) => void;
-  onRemoveMember?: (data: string[]) => void;
-  onChangedMember?: (data: ISelectedChangedMember[]) => void;
-  onAddMember?: (data: ISelectedMember[]) => void;
-}
 
 const PULSE_STYLES: Record<
   PulseStatus,
@@ -55,30 +52,54 @@ const PULSE_STYLES: Record<
   },
 };
 
-export default function CoolSummary({
-  data,
-  today = new Date(),
-  onChangePeriod,
-  onChangedMember,
-  onRemoveMember,
-  onAddMember,
-}: SmallGroupReportProps) {
+export default function CoolSummary({ id }: { id: number }) {
   const [filter, setFilter] = useState<FilterPeriod>(1);
-  const report = useSmallGroupReport(data, filter, today);
-  const pulseStyle = PULSE_STYLES[report.pulse.key];
-
-  const chartData = report.months.map((m, i) => ({
-    label: formatMonthKey(m),
-    count: report.monthlyMeetings[i],
-    met: report.monthlyMeetings[i] >= report.targetPerMonth,
+  const [period, setPeriod] = useState(() => ({
+    start_date: moment().startOf("month").format("DD MMM YYYY"),
+    end_date: moment().endOf("month").format("DD MMM YYYY"),
   }));
 
-  const handleFilterChange = (value: FilterPeriod) => {
-    setFilter(value);
-    onChangePeriod?.(value);
-  };
+  const { data: smallGroupData, isLoading } = useQuery({
+    queryKey: ["cool-detail", id, period.start_date, period.end_date],
+    queryFn: async () => {
+      const { smallGroupData } = await fetchSmallGroupById(
+        id,
+        period.start_date,
+        period.end_date
+      );
+      return smallGroupData;
+    },
+    enabled: !!id,
+  });
+
+  const report = useSmallGroupReport(smallGroupData as ISmallGroup, filter);
+
+  const pulseStyle = PULSE_STYLES[report?.pulse?.key || "tidak-aktif"];
+
+  const chartData = useMemo(() => {
+    if (!report) return [];
+    return report.months.map((m, i) => ({
+      label: formatMonthKey(m),
+      count: report.monthlyMeetings[i],
+      met: report.monthlyMeetings[i] >= report.targetPerMonth,
+    }));
+  }, [report]);
+
+  const onChangePeriod = useCallback((newPeriod: FilterPeriod) => {
+    const periodMonth = moment().subtract(
+      newPeriod === 1 ? 0 : newPeriod,
+      "month"
+    );
+
+    setPeriod({
+      start_date: periodMonth.startOf("month").format("YYYY-MM-DD"),
+      end_date: moment().format("YYYY-MM-DD"),
+    });
+    setFilter(newPeriod);
+  }, []);
 
   const metricsCards = useMemo(() => {
+    if (!report) return [];
     return [
       {
         title: "Rata-rata kehadiran",
@@ -115,12 +136,24 @@ export default function CoolSummary({
     ];
   }, [pulseStyle, report]);
 
+  if (isLoading || !report) {
+    return (
+      <CoolSection
+        title="Group Health & Activity"
+        description="Monitor engagement and attendance trends."
+        icon={TrendingUp}
+      >
+        <LoadingSection />
+      </CoolSection>
+    );
+  }
+
   return (
     <CoolSection
       title="Group Health & Activity"
       description="Monitor engagement and attendance trends."
       icon={TrendingUp}
-      action={<CoolSummaryFilter onChangePeriod={handleFilterChange} />}
+      action={<CoolSummaryFilter onChangePeriod={onChangePeriod} />}
     >
       <div className="space-y-5 p-1">
         {/* Metric cards */}
@@ -145,13 +178,7 @@ export default function CoolSummary({
         />
 
         {/* Member consistency */}
-        <CoolSummaryMember
-          members={report.members}
-          report={report}
-          onRemove={onRemoveMember}
-          onChanged={onChangedMember}
-          onAdd={onAddMember}
-        />
+        <CoolSummaryMember members={report.members} report={report} />
       </div>
     </CoolSection>
   );

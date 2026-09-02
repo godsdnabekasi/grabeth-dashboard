@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 
-import { CirclePlus, Info, Map } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
@@ -10,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import ChurchBankAcoountContainer from "@/app/(main)/church/_components/bank-account/container";
 import DeleteSection from "@/app/(main)/church/_components/delete";
+import FormGeneral from "@/app/(main)/church/_components/form-general";
 import ChurchLocationCardList from "@/app/(main)/church/_components/location/card";
 import ChurchLocationModal from "@/app/(main)/church/_components/location/location-modal";
 import ChurchMemberContainer, {
@@ -17,20 +17,16 @@ import ChurchMemberContainer, {
 } from "@/app/(main)/church/_components/member/container";
 import ChurchPastoral from "@/app/(main)/church/_components/member/pastoral";
 import ChurchServiceContainer from "@/app/(main)/church/_components/service/container";
+import { BankAccountFormValues } from "@/app/(main)/church/_types/bank";
+import { ChurchLocationFormValues } from "@/app/(main)/church/_types/location";
 import {
-  BankAccountFormValues,
   ChurchFormValues,
-  ChurchLocationFormValues,
   churchSchema,
 } from "@/app/(main)/church/_types/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter } from "@/components/ui/card";
-import FormSection from "@/components/ui/form/section";
-import { Input } from "@/components/ui/input";
-import { InputDatePicker } from "@/components/ui/input-date-picker";
-import { InputImage } from "@/components/ui/input-image";
+import { CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IChurchService } from "@/types/church";
 
 type Props = {
@@ -53,7 +49,7 @@ const ChurchForm = ({
   const router = useRouter();
   const [openLocationModal, setOpenLocationModal] = useState(false);
 
-  const { control, getValues, setValue, handleSubmit, watch } =
+  const { getValues, setValue, handleSubmit, watch } =
     useForm<ChurchFormValues>({
       resolver: zodResolver(churchSchema),
       defaultValues: initialValues,
@@ -62,8 +58,6 @@ const ChurchForm = ({
   // eslint-disable-next-line react-hooks/incompatible-library
   const services = watch("services");
   const bank_accounts = watch("bank_accounts");
-
-  const commonProps = { control, disabled: isSubmitting };
 
   const handleSubmitForm = useCallback(
     () => handleSubmit((values) => onSubmit({ ...values }))(),
@@ -170,128 +164,91 @@ const ChurchForm = ({
     [getValues, setValue]
   );
 
-  return (
-    <>
-      <FormSection
-        title="Church Information"
-        description="Update church information"
-        icon={Info}
-      >
-        <Card contentClassName="grid grid-cols-2 gap-6">
-          <InputImage
-            label="Photo"
-            name="photo"
-            recommendedSize="1080x1080px (1:1)"
-            className="aspect-square"
-            {...commonProps}
-          />
-          <div className="space-y-6">
-            <Input
-              label="Name"
-              placeholder="Enter name"
-              name="name"
-              required
-              {...commonProps}
-            />
-            <InputDatePicker
-              label="Establish date"
-              placeholder="Enter establish date"
-              required
-              name="establish_date"
-              {...commonProps}
-            />
-            <Input
-              label="Phone"
-              placeholder="628123456789"
-              name="contact.0.value"
-              required
-              type="number"
-              {...commonProps}
-            />
-          </div>
-          <Textarea
-            label="Description"
-            placeholder="Enter description"
-            name="description"
-            {...commonProps}
-            containerClassName="col-span-2"
-          />
-
-          <div className="col-span-2 grid grid-cols-3 gap-6">
-            <Input
-              label="Instagram"
-              placeholder="https://www.instagram.com/"
-              name="contact.1.value"
-              {...commonProps}
-            />
-            <Input
-              label="Facebook"
-              placeholder="https://www.facebook.com/"
-              name="contact.2.value"
-              {...commonProps}
-            />
-            <Input
-              label="Youtube"
-              placeholder="https://www.youtube.com/"
-              name="contact.3.value"
-              {...commonProps}
-            />
-          </div>
-        </Card>
-      </FormSection>
-
-      <Separator />
-
-      <FormSection
-        title="Locations"
-        description="Manage church locations"
-        icon={Map}
-        action={
-          !getValues("location") && (
-            <Button size="md" onClick={() => setOpenLocationModal(true)}>
-              <CirclePlus />
-              Add Location
-            </Button>
-          )
-        }
-      >
+  const tabList = [
+    {
+      value: "general",
+      label: "General",
+      content: (
+        <FormGeneral
+          initialValues={initialValues}
+          isSubmitting={isSubmitting}
+        />
+      ),
+    },
+    {
+      value: "pastoral",
+      label: "Pastoral",
+      content: (
+        <ChurchPastoral
+          onAddPastor={onAdd}
+          onChangeRole={onChangeRole}
+          onRemovePastor={onRemove}
+        />
+      ),
+    },
+    {
+      value: "location",
+      label: "Location",
+      content: (
         <ChurchLocationCardList
           data={getValues("location")}
+          initialValues={initialValues as ChurchFormValues}
+          setOpenLocationModal={setOpenLocationModal}
           onEdit={() => setOpenLocationModal(true)}
         />
-      </FormSection>
+      ),
+    },
+    {
+      value: "member",
+      label: "Member",
+      content: (
+        <ChurchMemberContainer
+          onAddMember={onAdd}
+          onChangeRole={onChangeRole}
+          onRemoveMember={onRemove}
+        />
+      ),
+    },
+    {
+      value: "service",
+      label: "Service",
+      content: (
+        <ChurchServiceContainer
+          initialValues={services}
+          onChangeService={onChangeService}
+          onRemoveService={onRemoveService}
+        />
+      ),
+    },
+    {
+      value: "bank_accounts",
+      label: "Bank Accounts",
+      content: (
+        <ChurchBankAcoountContainer
+          initialValues={bank_accounts}
+          onChange={onChangeBankAccount}
+          onRemove={onRemoveBankAccount}
+        />
+      ),
+    },
+  ];
 
-      <Separator />
-
-      <ChurchPastoral
-        onAddPastor={onAdd}
-        onChangeRole={onChangeRole}
-        onRemovePastor={onRemove}
-      />
-
-      <Separator />
-
-      <ChurchMemberContainer
-        onAddMember={onAdd}
-        onChangeRole={onChangeRole}
-        onRemoveMember={onRemove}
-      />
-
-      <Separator />
-
-      <ChurchServiceContainer
-        initialValues={services}
-        onChangeService={onChangeService}
-        onRemoveService={onRemoveService}
-      />
-
-      <Separator />
-
-      <ChurchBankAcoountContainer
-        initialValues={bank_accounts}
-        onChange={onChangeBankAccount}
-        onRemove={onRemoveBankAccount}
-      />
+  return (
+    <>
+      <Tabs defaultValue="general">
+        <TabsList variant="line">
+          {tabList.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {tabList.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value} className="mt-4">
+            {tab.content}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       <Separator />
 

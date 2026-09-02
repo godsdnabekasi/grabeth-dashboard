@@ -1,9 +1,9 @@
 import { Trash2 } from "lucide-react";
 
-import { Card } from "../../ui/card";
 import Alert from "@/components/ui/alert";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface IDeleteSectionProps {
   onDelete: () => void;

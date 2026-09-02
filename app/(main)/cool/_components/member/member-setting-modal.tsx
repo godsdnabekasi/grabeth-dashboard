@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 
-import { ISelectedMember } from "@/components/page/cool/member-item";
+import { ICoolMember } from "@/app/(main)/cool/_types/member";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,14 +25,10 @@ import { SmallGroupRole } from "@/types/small-group";
 
 interface IMemberSettingModal {
   isShowModal: boolean;
-  member?: ISelectedMember;
+  member?: ICoolMember;
   setIsShowModal: (val: boolean) => void;
-  onSave?: (data: ISelectedChangedMember) => void;
+  onSave?: (data: ICoolMember) => void;
   onRemove?: (data: ISelectedRemoveMember) => void;
-}
-
-export interface ISelectedChangedMember extends ISelectedMember {
-  newRole: SmallGroupRole;
 }
 
 export interface ISelectedRemoveMember {
@@ -54,7 +50,7 @@ const MemberSettingModal = ({
 
   const onSaveChanged = useCallback(() => {
     onSave?.({
-      ...(member as ISelectedChangedMember),
+      ...(member as ICoolMember),
       id: member?.id as string,
       newRole: selectedRole,
       selected: true,

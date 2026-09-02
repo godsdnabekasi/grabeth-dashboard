@@ -2,8 +2,13 @@ import moment from "moment";
 import { toast } from "sonner";
 
 import { submitPhotoService } from "@/app/(main)/church/_services/photo.service";
-import { ServiceFormValues } from "@/app/(main)/church/_types/types";
-import { deleteChurchServices, upsertChurchServices } from "@/service/church";
+import { ServiceFormValues } from "@/app/(main)/church/_types/service";
+import {
+  deleteChurchServiceSchedules,
+  deleteChurchServices,
+  upsertChurchServiceSchedules,
+  upsertChurchServices,
+} from "@/service/church";
 import { upsertLocations } from "@/service/location";
 import { IPayloadLocation } from "@/types/location";
 
@@ -23,13 +28,9 @@ export const submitChurchServices = async (
   const payloadIds = new Set<number>();
 
   payload.forEach((p) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { day, ...rest } = p;
+    const { ...rest } = p;
     const formattedService = {
       ...rest,
-      end_time: p.end_time ? timeFormat(p.end_time, p.day!) : null,
-      start_time: p.start_time ? timeFormat(p.start_time, p.day!) : null,
-      open_time: p.open_time ? `${p.open_time}:00+07` : null,
     } as unknown as ServiceFormValues;
 
     if (formattedService.id) {
@@ -48,9 +49,13 @@ export const submitChurchServices = async (
   const promises = [];
 
   if (newServices.length > 0)
-    promises.push(createUpdateChurchServices(churchId, newServices));
+    promises.push(
+      createUpdateChurchServices(churchId, newServices, existingData)
+    );
   if (updatedServices.length > 0)
-    promises.push(createUpdateChurchServices(churchId, updatedServices));
+    promises.push(
+      createUpdateChurchServices(churchId, updatedServices, existingData)
+    );
   if (deletedServices.length > 0)
     promises.push(removeChurchServices(deletedServices));
 
@@ -59,7 +64,8 @@ export const submitChurchServices = async (
 
 const createUpdateChurchServices = async (
   churchId: number,
-  payload: ServiceFormValues[]
+  payload: ServiceFormValues[],
+  existingData: ServiceFormValues[]
 ) => {
   try {
     const servicesWithLocation = payload.filter((p) => p.location);
@@ -99,7 +105,7 @@ const createUpdateChurchServices = async (
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { photo, location, ...rest } = item;
+      const { photo, location, schedules, ...rest } = item;
 
       return {
         ...rest,
@@ -113,6 +119,13 @@ const createUpdateChurchServices = async (
 
     const { data, error } = await upsertChurchServices(cleanedServices);
     if (error) throw error;
+
+    const { error: scheduleError } = await submitChurchServiceSchedule(
+      payload,
+      existingData
+    );
+    if (scheduleError)
+      throw new Error("Failed to create church services schedule");
 
     return { data, error };
   } catch (error) {
@@ -129,6 +142,51 @@ const removeChurchServices = async (ids: number[]) => {
   } catch (error) {
     toast.error("Error removing church services");
     return { error };
+  }
+};
+
+const submitChurchServiceSchedule = async (
+  payload: ServiceFormValues[],
+  existingData: ServiceFormValues[]
+) => {
+  try {
+    const cleanedServices = payload.flatMap(
+      (p) =>
+        p.schedules?.map((s) => {
+          return {
+            ...(s.id ? { id: s.id } : {}),
+            church_service_id: p.id!,
+            end_time: s.end_time ? timeFormat(s.end_time, s.day!) : null,
+            start_time: s.start_time ? timeFormat(s.start_time, s.day!) : null,
+          };
+        }) || []
+    );
+
+    const newSchedule = cleanedServices.filter((s) => !s.id);
+    const updatedSchedule = cleanedServices.filter((s) => s.id);
+    const deletedSchedule = existingData.flatMap(
+      (p) => p.schedules?.filter((s) => !s.id).map((s) => s.id!) || []
+    );
+
+    const { data: newScheduleData, error: newScheduleError } =
+      await upsertChurchServiceSchedules(newSchedule);
+    if (newScheduleError) throw newScheduleError;
+
+    const { data: updatedScheduleData, error: updatedScheduleError } =
+      await upsertChurchServiceSchedules(updatedSchedule);
+    if (updatedScheduleError) throw updatedScheduleError;
+
+    const { error: deleteScheduleError } =
+      await deleteChurchServiceSchedules(deletedSchedule);
+    if (deleteScheduleError) throw deleteScheduleError;
+
+    return {
+      data: [...(newScheduleData || []), ...(updatedScheduleData || [])],
+      error: newScheduleError || updatedScheduleError || deleteScheduleError,
+    };
+  } catch (error) {
+    toast.error("Error fetching church services");
+    return { data: [], error };
   }
 };
 

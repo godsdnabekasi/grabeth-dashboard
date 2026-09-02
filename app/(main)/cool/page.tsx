@@ -1,36 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { useSnapshot } from "valtio";
 
 import { ColumnDef } from "@tanstack/react-table";
 
+import {
+  ICoolDataTable,
+  useCoolList,
+  useDeleteCoolList,
+} from "@/app/(main)/cool/_hooks/useCoolList";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable, IPaginationProps } from "@/components/ui/data-table";
 import { Image } from "@/components/ui/image";
 import PageHeader from "@/components/ui/page-header";
 import { useDebounce } from "@/hooks/use-debounce";
-import { formatDate, formatTime } from "@/lib/utils";
-import { deleteSmallGroup, getSmallGroups } from "@/service/small-group";
-import userStore from "@/store/user";
-import { ISmallGroup } from "@/types/small-group";
 
-export interface IDataTable {
-  id: number;
-  name: string;
-  meetTime: string;
-  location?: string;
-  coverImage?: string;
-  memberCount?: number;
-  leader?: string;
-}
-
-export const parentColumns: ColumnDef<IDataTable>[] = [
+export const parentColumns: ColumnDef<ICoolDataTable>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -93,81 +82,39 @@ export const parentColumns: ColumnDef<IDataTable>[] = [
 
 const CoolPage = () => {
   const router = useRouter();
-  const { user } = useSnapshot(userStore);
-  const [items, setItems] = useState<IDataTable[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [search, setSearch] = useState<string>();
   const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
 
-  const transformUsers = (data: ISmallGroup[] = []): IDataTable[] =>
-    data.map((d) => ({
-      id: d.id,
-      name: d.name,
-      meetTime: d.meet_time
-        ? `${formatDate(d.meet_time, "dddd")} • ${formatTime(d.meet_time)}`
-        : "-",
-      location: d.small_group_location?.[0]?.location?.name || "-",
-      memberCount: d.small_group_user?.length || 0,
-      leader:
-        d.small_group_user?.filter((user) => user.role === "pastor")[0]?.user
-          ?.name || "-",
-      coverImage: d.small_group_file?.file?.link || "",
-    }));
+  const { data, isLoading } = useCoolList(page, pageSize, debouncedSearch);
+  const deleteMutation = useDeleteCoolList();
 
-  const fetchItems = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const filter = {
-        page: page + 1,
-        pageSize,
-        church_id: user?.church_user?.church_id || 0,
-      };
-      const { data, error, count } = await getSmallGroups(
-        debouncedSearch ? { search: debouncedSearch, ...filter } : filter
-      );
-      if (error) throw error;
-      setItems(transformUsers(data || []));
-      setTotalCount(count || 0);
-    } catch {
-      toast.error("Oops, something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [debouncedSearch, page, pageSize, user?.church_user?.church_id]);
+  const handleCreate = useCallback(() => {
+    router.push("/cool/create");
+  }, [router]);
 
-  const handleCreate = () => router.push("/cool/create");
-
-  const handlePaginationChange = ({ page, pageSize }: IPaginationProps) => {
-    setPageSize(pageSize);
-    setPage(page);
-  };
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const handleRowClick = (data: IDataTable) => {
-    if (data.id) router.push(`/cool/${data.id}`);
-  };
-
-  const onDelete = useCallback(
-    async (val: IDataTable[]) => {
-      try {
-        setIsLoading(true);
-        const { error } = await deleteSmallGroup(val.map((u) => Number(u.id)!));
-        if (error) throw error;
-        toast.success(`Successfully deleted ${val.length} COOL(s)`);
-        await fetchItems();
-      } catch {
-        toast.error("Oops, something went wrong");
-      } finally {
-        setIsLoading(false);
-      }
+  const handlePaginationChange = useCallback(
+    ({ page: newPage, pageSize: newPageSize }: IPaginationProps) => {
+      setPageSize(newPageSize);
+      setPage(newPage);
     },
-    [fetchItems]
+    []
+  );
+
+  const handleRowClick = useCallback(
+    (rowData: ICoolDataTable) => {
+      if (rowData.id) router.push(`/cool/${rowData.id}`);
+    },
+    [router]
+  );
+
+  const handleDeleteRow = useCallback(
+    (rows: unknown[]) => {
+      deleteMutation.mutate(rows as ICoolDataTable[]);
+    },
+    [deleteMutation]
   );
 
   return (
@@ -183,16 +130,16 @@ const CoolPage = () => {
       />
       <DataTable
         columns={parentColumns}
-        data={items}
-        loading={isLoading}
+        data={data?.data || []}
+        loading={isLoading || deleteMutation.isPending}
         searchKey="name"
         page={page}
         pageSize={pageSize}
-        totalCount={totalCount}
+        totalCount={data?.count || 0}
         showPagination
         emptyMessage="No COOL found."
         onRowClick={handleRowClick}
-        onDeleteRow={onDelete}
+        onDeleteRow={handleDeleteRow}
         onSearch={setSearch}
         onPaginationChange={handlePaginationChange}
       />

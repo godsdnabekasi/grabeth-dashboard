@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChurchLocationFormValues,
   locationSchema,
-} from "@/app/(main)/church/_types/types";
+} from "@/app/(main)/church/_types/location";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

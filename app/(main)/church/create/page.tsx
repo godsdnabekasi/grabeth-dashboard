@@ -1,6 +1,6 @@
 "use client";
 
-import AccountForm from "@/app/(main)/church/_components/form";
+import ChurchForm from "@/app/(main)/church/_components/form";
 import { useChurchDetail } from "@/app/(main)/church/_hooks/use-church-detail";
 import PageHeader from "@/components/ui/page-header";
 
@@ -10,8 +10,8 @@ const ChurchCreatePage = () => {
 
   return (
     <>
-      <PageHeader title="Account Details" />
-      <AccountForm
+      <PageHeader title="Create Church" />
+      <ChurchForm
         isSubmitting={isSubmitting}
         onRemoveMember={setDeletedMember}
         onSubmit={onSubmit}

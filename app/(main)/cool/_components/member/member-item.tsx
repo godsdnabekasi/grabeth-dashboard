@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 
-import { MemberFormValues } from "@/components/page/cool/types";
+import { ICoolMember } from "@/app/(main)/cool/_types/member";
 import { Avatar } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn, formatDate } from "@/lib/utils";
@@ -9,11 +9,7 @@ import { IUser } from "@/types/user";
 interface IMemberItem {
   member: IUser;
   isSelected: boolean;
-  onToggle: (selected: ISelectedMember) => void;
-}
-
-export interface ISelectedMember extends MemberFormValues {
-  selected?: boolean;
+  onToggle: (selected: ICoolMember) => void;
 }
 
 const MemberItem = memo(({ member, isSelected, onToggle }: IMemberItem) => {

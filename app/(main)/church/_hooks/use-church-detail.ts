@@ -15,7 +15,7 @@ import {
   onRemoveMemberChurch,
 } from "@/app/(main)/church/_services/user.service";
 import { ChurchFormValues } from "@/app/(main)/church/_types/types";
-import { formatDate, formatTime, formatTimeString } from "@/lib/utils";
+import { formatDate, formatTime } from "@/lib/utils";
 import { deleteChurchs, getChurchById, upsertChurch } from "@/service/church";
 import { IChurch } from "@/types/church";
 import { ContactType } from "@/types/contact";
@@ -78,10 +78,28 @@ export const useChurchDetail = (mode?: "create" | "edit") => {
             ...cs,
             photo: cs.file?.link,
             description: cs.description || "",
-            day: formatDate(String(cs.start_time), "dddd"),
-            start_time: cs.start_time ? formatTime(cs.start_time) : "",
-            end_time: cs.end_time ? formatTime(cs.end_time) : "",
-            open_time: cs.open_time ? formatTimeString(cs.open_time) : "",
+            schedules:
+              cs.church_service_schedule &&
+              cs.church_service_schedule.length > 0
+                ? cs.church_service_schedule?.map((css) => {
+                    return {
+                      ...css,
+                      day: css.start_time
+                        ? formatDate(String(css.start_time), "dddd")
+                        : "",
+                      start_time: css.start_time
+                        ? formatTime(css.start_time)
+                        : "",
+                      end_time: css.end_time ? formatTime(css.end_time) : "",
+                    };
+                  })
+                : [
+                    {
+                      day: "",
+                      start_time: "",
+                      end_time: "",
+                    },
+                  ],
             location: {
               name: cs.location?.name || "",
               address: cs.location?.address || "",
